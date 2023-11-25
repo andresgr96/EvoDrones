@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<robot name="custom_line">
+  <link name="baseLink">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0.00"/> <!-- Set a very small mass value -->
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/> <!-- Set very small inertia values -->
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0.1" xyz="0 0 0.01"/> <!-- Adjust the Z coordinate to raise the line above the ground -->
+      <geometry>
+        <box size="1 0.1 0.01" />
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/> <!-- Red color with RGBA values (1, 0, 0, 1) -->
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0.1" xyz="0 0 0.1"/> <!-- Adjust the Z coordinate to raise the collision geometry above the ground -->
+      <geometry>
+        <box size="1 0.1 0.01" />
+      </geometry>
+    </collision>
+  </link>
+</robot>

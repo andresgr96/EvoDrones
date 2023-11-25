@@ -987,7 +987,7 @@ class BaseAviary(gym.Env):
         p.loadURDF("samurai.urdf",
                    physicsClientId=self.CLIENT
                    )
-        p.loadURDF("line.urdf",
+        p.loadURDF("../line.urdf",
                    [-.5, -.5, .01],
                    p.getQuaternionFromEuler([0, 0, 0]),
                    physicsClientId=self.CLIENT

@@ -198,3 +198,14 @@ class CtrlAviary(BaseAviary):
 
         """
         return {"answer": 42} #### Calculated by the Deep Thought supercomputer in 7.5M years
+
+    def _getDronePositions(self):
+        """Returns the positions of all drones.
+
+        Returns
+        -------
+        list
+            List of (x, y, z) positions for each drone.
+
+        """
+        return [self._getDroneStateVector(i)[:3] for i in range(self.NUM_DRONES)]

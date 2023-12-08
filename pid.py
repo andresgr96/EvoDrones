@@ -116,6 +116,9 @@ def run(
         #### Step the simulation ###################################
         obs, reward, terminated, truncated, info = env.step(action)
 
+        object_position, object_orientation = p.getBasePositionAndOrientation(env.object_ids["custom_line"])
+        print(f"Custom Line Position: x={object_position[0]}, y={object_position[1]}, z={object_position[2]}")
+
         #### Printout drone positions #############################
         drone_positions = env._getDronePositions()
         for z, position in enumerate(drone_positions):

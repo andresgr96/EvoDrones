@@ -36,7 +36,7 @@ class BaseAviary(gym.Env):
                  obstacles=False,
                  user_debug_gui=True,
                  vision_attributes=False,
-                 output_folder='results'
+                 output_folder='results',
                  ):
         """Initialization of a generic aviary environment.
 
@@ -71,6 +71,7 @@ class BaseAviary(gym.Env):
 
         """
         #### Constants #############################################
+        self.object_ids = {}  # Dictionary to store object IDs
         self.G = 9.8
         self.RAD2DEG = 180/np.pi
         self.DEG2RAD = np.pi/180
@@ -982,11 +983,12 @@ class BaseAviary(gym.Env):
         p.loadURDF("samurai.urdf",
                    physicsClientId=self.CLIENT
                    )
-        p.loadURDF("assets/line.urdf",
-                   [-.5, -.5, .01],
-                   p.getQuaternionFromEuler([0, 0, 0]),
-                   physicsClientId=self.CLIENT
-                   )
+
+        line_position = [-.5, -.5, .01]  # Adjust the position as needed
+        line_orientation = p.getQuaternionFromEuler([0, 0, 0])  # Adjust the orientation as needed
+
+        line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
+        self.object_ids["custom_line"] = line_id
         p.loadURDF("assets/line2.urdf",
                    [-1.4, -0.77, .01],
                    p.getQuaternionFromEuler([0, 0, 0]),

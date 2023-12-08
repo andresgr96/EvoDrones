@@ -982,21 +982,24 @@ class BaseAviary(gym.Env):
         p.loadURDF("samurai.urdf",
                    physicsClientId=self.CLIENT
                    )
-        p.loadURDF("duck_vhacd.urdf",
-                   [-.5, -.5, .05],
+        p.loadURDF("assets/line.urdf",
+                   [-.5, -.5, .01],
                    p.getQuaternionFromEuler([0, 0, 0]),
                    physicsClientId=self.CLIENT
                    )
-        p.loadURDF("cube_no_rotation.urdf",
-                   [-.5, -2.5, .5],
+        p.loadURDF("assets/line2.urdf",
+                   [-1.4, -0.77, .01],
                    p.getQuaternionFromEuler([0, 0, 0]),
                    physicsClientId=self.CLIENT
                    )
-        p.loadURDF("sphere2.urdf",
-                   [0, 2, .5],
-                   p.getQuaternionFromEuler([0,0,0]),
+
+        p.loadURDF("assets/circle.urdf",
+                   [0.35, -0.45, .01],
+                   p.getQuaternionFromEuler([0, 0, 0]),
                    physicsClientId=self.CLIENT
                    )
+
+
     
     ################################################################################
     

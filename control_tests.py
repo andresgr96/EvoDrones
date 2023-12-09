@@ -101,10 +101,13 @@ def run(
     if drone in [DroneModel.CF2X, DroneModel.CF2P]:
         ctrl = [DSLPIDControl(drone_model=drone) for i in range(num_drones)]
 
+    # Test variables
+    line_position, object_orientation = p.getBasePositionAndOrientation(env.segment_ids.get("segment_1")["id"])
+    coord_line_covers = env.segment_ids.get("segment_1")["coordinates"]
+
     # Run the simulation
     START = time.time()
-    line_position, object_orientation = p.getBasePositionAndOrientation(env.object_ids["custom_line"])
-    coord_line_covers = env.calculate_line_coordinates(line_position)
+
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 
         # Build the action for each drone and take a step, action is random for now

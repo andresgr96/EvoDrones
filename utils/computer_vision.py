@@ -45,7 +45,7 @@ def detect_objects(masked_image):  # This function works regardless of the color
     segment_names = ["Top Left", "Middle Left", "Bottom Left", "Top Center", "Middle Center", "Bottom Center",
                      "Top Right", "Middle Right", "Bottom Right"]
 
-    # A cleaner way to define each segment 
+    # A cleaner way to define each segment
     for i in range(num_segments):
         for j in range(num_segments):
             start_x = i * segment_width

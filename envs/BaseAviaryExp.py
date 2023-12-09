@@ -71,7 +71,7 @@ class BaseAviary(gym.Env):
 
         """
         #### Constants #############################################
-        self.object_ids = {}  # Dictionary to store object IDs
+        self.segment_ids = {}  # Dictionary to store object IDs
         self.G = 9.8
         self.RAD2DEG = 180/np.pi
         self.DEG2RAD = np.pi/180
@@ -986,19 +986,22 @@ class BaseAviary(gym.Env):
                    physicsClientId=self.CLIENT
                    )
 
+        # Segment 1
         line_position = [-.5, -.5, .01]
-        line_orientation = p.getQuaternionFromEuler([0, 0, 0])  # Adjust the orientation as needed
-
+        line_orientation = p.getQuaternionFromEuler([0, 0, 0])
         line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
-        self.object_ids["custom_line"] = line_id
-
+        self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position)}
+        
+        # Segment 2
         line2_position = [-1.4, -0.77, .01]
+        line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
         p.loadURDF("assets/line2.urdf",
                    line2_position,
-                   p.getQuaternionFromEuler([0, 0, 0]),
+                   line2_orientation,
                    physicsClientId=self.CLIENT
                    )
-
+        
+        # Landing Circle
         circle_position = [0.35, -0.45, .01]
         circle_position_exp = [0.35, 0, .01]
         p.loadURDF("assets/circle.urdf",
@@ -1177,6 +1180,9 @@ class BaseAviary(gym.Env):
             current_position + normalized_direction * step_size
         )  # Calculate the next step
         return next_step
+
+
+
 
     # Calculates the coordinates covered by a given line
     def calculate_line_coordinates(self, line_position):

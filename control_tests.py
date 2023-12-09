@@ -1,18 +1,10 @@
-"""Script demonstrating the joint use of simulation and control.
-
-The simulation is run by a `CtrlAviary` environment.
-The control is given by the PID implementation in `DSLPIDControl`.
+"""
 
 Example
 -------
 In a terminal, run as:
 
     $ python control_tests.py
-
-Notes
------
-The drones move, at different altitudes, along cicular trajectories 
-in the X-Y plane, around point (0, -.3).
 
 """
 import os
@@ -25,11 +17,13 @@ import random
 import numpy as np
 import pybullet as p
 import matplotlib.pyplot as plt
+import cv2
 
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
 from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action
+from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image
 from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool
 
@@ -92,31 +86,35 @@ def run(
     print("[INFO] Observation space:", env.observation_space)
     print("[INFO] Max RPM:", env.MAX_RPM)
 
-    #### Obtain the PyBullet Client ID from the environment ####
+    # Obtain the PyBullet Client ID from the environment
     PYB_CLIENT = env.getPyBulletClient()
 
-    #### Initialize the logger #################################
+    # Initialize the logger
     logger = Logger(logging_freq_hz=control_freq_hz,
                     num_drones=num_drones,
                     output_folder=output_folder,
                     colab=colab
                     )
 
-    #### Initialize the controllers ############################
+    # Initialize the controllers
     if drone in [DroneModel.CF2X, DroneModel.CF2P]:
         ctrl = [DSLPIDControl(drone_model=drone) for i in range(num_drones)]
 
-    #### Run the simulation ####################################
+    # Run the simulation
     START = time.time()
     line_position, object_orientation = p.getBasePositionAndOrientation(env.object_ids["custom_line"])
     coord_line_covers = env.calculate_line_coordinates(line_position)
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
-        # Build the action for each drone, random for now
+
+        # Build the action for each drone and take a step, action is random for now
         action = build_action(num_drones)
-        # print(action)
         obs, reward, terminated, truncated, info = env.step(action)
 
-        # This prints each drones location
+        # Display the camera feed of drone 1
+        rgb_image, _, _ = env._getDroneImages(0)
+        display_drone_image(rgb_image)
+
+        # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()
         for z, position in enumerate(drone_positions):
             over_line = env.is_drone_over_line(position, line_position)
@@ -126,7 +124,7 @@ def run(
             print(f"Coordinates Covered: x range= {coord_line_covers[0]} to {coord_line_covers[1]}, "
                   f"y range= {coord_line_covers[2]} to {coord_line_covers[3]}")
             print(f"Drone {z + 1} Position: x={position[0]}, y={position[1]}, z={position[2]}")
-            print(f"Is drone {z} over the line? {over_line}")
+            print(f"Is drone {z + 1} over the line? {over_line}")
 
         # Render and sync the sim if needed
         env.render()

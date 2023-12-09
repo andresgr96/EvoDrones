@@ -986,22 +986,26 @@ class BaseAviary(gym.Env):
                    physicsClientId=self.CLIENT
                    )
 
-        line_position = [-.5, -.5, .01]  # Adjust the position as needed
+        line_position = [-.5, -.5, .01]
         line_orientation = p.getQuaternionFromEuler([0, 0, 0])  # Adjust the orientation as needed
 
         line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
         self.object_ids["custom_line"] = line_id
-        # p.loadURDF("assets/line2.urdf",
-        #            [-1.4, -0.77, .01],
-        #            p.getQuaternionFromEuler([0, 0, 0]),
-        #            physicsClientId=self.CLIENT
-        #            )
-        #
-        # p.loadURDF("assets/circle.urdf",
-        #            [0.35, -0.45, .01],
-        #            p.getQuaternionFromEuler([0, 0, 0]),
-        #            physicsClientId=self.CLIENT
-        #            )
+
+        line2_position = [-1.4, -0.77, .01]
+        p.loadURDF("assets/line2.urdf",
+                   line2_position,
+                   p.getQuaternionFromEuler([0, 0, 0]),
+                   physicsClientId=self.CLIENT
+                   )
+
+        circle_position = [0.35, -0.45, .01]
+        circle_position_exp = [0.35, 0, .01]
+        p.loadURDF("assets/circle.urdf",
+                   circle_position_exp,
+                   p.getQuaternionFromEuler([0, 0, 0]),
+                   physicsClientId=self.CLIENT
+                   )
 
 
     

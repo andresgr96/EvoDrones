@@ -77,6 +77,7 @@ class BaseAviary(gym.Env):
         self.DEG2RAD = np.pi/180
         self.CTRL_FREQ = ctrl_freq
         self.PYB_FREQ = pyb_freq
+        self.line_size = [1, 0.2, 0.01]
         if self.PYB_FREQ % self.CTRL_FREQ != 0:
             raise ValueError('[ERROR] in BaseAviary.__init__(), pyb_freq is not divisible by env_freq.')
         self.PYB_STEPS_PER_CTRL = int(self.PYB_FREQ / self.CTRL_FREQ)
@@ -215,6 +216,7 @@ class BaseAviary(gym.Env):
         self._updateAndStoreKinematicInformation()
         #### Start video recording #################################
         self._startVideoRecording()
+
     
     ################################################################################
 
@@ -989,17 +991,17 @@ class BaseAviary(gym.Env):
 
         line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
         self.object_ids["custom_line"] = line_id
-        p.loadURDF("assets/line2.urdf",
-                   [-1.4, -0.77, .01],
-                   p.getQuaternionFromEuler([0, 0, 0]),
-                   physicsClientId=self.CLIENT
-                   )
-
-        p.loadURDF("assets/circle.urdf",
-                   [0.35, -0.45, .01],
-                   p.getQuaternionFromEuler([0, 0, 0]),
-                   physicsClientId=self.CLIENT
-                   )
+        # p.loadURDF("assets/line2.urdf",
+        #            [-1.4, -0.77, .01],
+        #            p.getQuaternionFromEuler([0, 0, 0]),
+        #            physicsClientId=self.CLIENT
+        #            )
+        #
+        # p.loadURDF("assets/circle.urdf",
+        #            [0.35, -0.45, .01],
+        #            p.getQuaternionFromEuler([0, 0, 0]),
+        #            physicsClientId=self.CLIENT
+        #            )
 
 
     
@@ -1171,3 +1173,24 @@ class BaseAviary(gym.Env):
             current_position + normalized_direction * step_size
         )  # Calculate the next step
         return next_step
+
+    # Calculates the coordinates covered by a given line
+    def calculate_line_coordinates(self, line_position):
+        line_x, line_y, _ = line_position
+        length, width, _ = self.line_size
+
+        # Calculate the coordinates covered by the line
+        x_min = line_x - length / 2
+        x_max = line_x + length / 2
+        y_min = line_y - width / 2
+        y_max = line_y + width / 2
+
+        return x_min, x_max, y_min, y_max
+
+    # Checks if the given drone is over the given line
+    def is_drone_over_line(self, drone_position, line_position):
+        drone_x, drone_y, _ = drone_position
+        x_min, x_max, y_min, y_max = self.calculate_line_coordinates(line_position)
+
+        # Check if the drone is over the line
+        return x_min <= drone_x <= x_max and y_min <= drone_y <= y_max

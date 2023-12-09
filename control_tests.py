@@ -35,7 +35,7 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 
 # Sim constants, do not change unless you really know what you are doing
 DEFAULT_DRONES = DroneModel("cf2x")
-DEFAULT_NUM_DRONES = 3
+DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
 DEFAULT_GUI = True
 DEFAULT_RECORD_VISION = False
@@ -108,20 +108,25 @@ def run(
 
     #### Run the simulation ####################################
     START = time.time()
+    line_position, object_orientation = p.getBasePositionAndOrientation(env.object_ids["custom_line"])
+    coord_line_covers = env.calculate_line_coordinates(line_position)
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
         # Build the action for each drone, random for now
         action = build_action(num_drones)
-        print(action)
+        # print(action)
         obs, reward, terminated, truncated, info = env.step(action)
 
-        # This prints the lines location
-        # object_position, object_orientation = p.getBasePositionAndOrientation(env.object_ids["custom_line"])
-        # print(f"Custom Line Position: x={object_position[0]}, y={object_position[1]}, z={object_position[2]}")
-
         # This prints each drones location
-        # drone_positions = env._getDronePositions()
-        # for z, position in enumerate(drone_positions):
-        #     print(f"Drone {z + 1} Position: x={position[0]}, y={position[1]}, z={position[2]}")
+        drone_positions = env._getDronePositions()
+        for z, position in enumerate(drone_positions):
+            over_line = env.is_drone_over_line(position, line_position)
+
+            # Print Line and Drone Position to test functionality
+            print(f"Custom Line Position: x={line_position[0]}, y={line_position[1]}, z={line_position[2]}")
+            print(f"Coordinates Covered: x range= {coord_line_covers[0]} to {coord_line_covers[1]}, "
+                  f"y range= {coord_line_covers[2]} to {coord_line_covers[3]}")
+            print(f"Drone {z + 1} Position: x={position[0]}, y={position[1]}, z={position[2]}")
+            print(f"Is drone {z} over the line? {over_line}")
 
         # Render and sync the sim if needed
         env.render()

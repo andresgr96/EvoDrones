@@ -102,11 +102,12 @@ def run(
         ctrl = [DSLPIDControl(drone_model=drone) for i in range(num_drones)]
 
     # Test variables
-    line_position, object_orientation = p.getBasePositionAndOrientation(env.segment_ids.get("segment_1")["id"])
+    line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get("segment_1")["id"])
     coord_line_covers = env.segment_ids.get("segment_1")["coordinates"]
 
     # Run the simulation
     START = time.time()
+    segments_completed = 0
 
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 

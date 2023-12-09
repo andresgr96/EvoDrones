@@ -1204,3 +1204,20 @@ class BaseAviary(gym.Env):
 
         # Check if the drone is over the line
         return x_min <= drone_x <= x_max and y_min <= drone_y <= y_max
+
+    # Checks if the drone is within the last 10% of the given segment, not tested yet
+    def is_within_last_10_percent(self, drone_position, segment_name):
+        drone_x, _, _ = drone_position
+        segment_length = self.line_size[0]
+        completion_threshold = 0.1
+
+        # Get the given segments information
+        line_position, _ = p.getBasePositionAndOrientation(self.segment_ids.get(segment_name)["id"])
+        x_min, x_max, _, _ = self.calculate_line_coordinates(line_position)
+        last_10_percent_start = x_max - segment_length * completion_threshold
+
+        # Also checks if the drone is withing the given segment so th y coordinates are checked too
+        return last_10_percent_start <= drone_x <= segment_length\
+            and self.is_drone_over_line(drone_position, line_position)
+
+

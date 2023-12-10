@@ -72,6 +72,7 @@ class BaseAviary(gym.Env):
         """
         #### Constants #############################################
         self.segment_ids = {}  # Dictionary to store object IDs
+        self.num_segments = 2  # Store number of segments, would be good to auto this when we have the track builder
         self.G = 9.8
         self.RAD2DEG = 180/np.pi
         self.DEG2RAD = np.pi/180
@@ -1235,7 +1236,7 @@ class BaseAviary(gym.Env):
         x_min, x_max, _, _ = self.calculate_line_coordinates(line_position)
         segment_length = x_max - x_min
 
-        # Iterate over each section and check if the drone is within
+        # Iterate over each section and check if the drone is within it
         section_step = segment_length / num_sections
         for i in range(num_sections):
             section_start = x_min + i * section_step

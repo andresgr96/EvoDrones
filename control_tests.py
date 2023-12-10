@@ -101,9 +101,12 @@ def run(
     if drone in [DroneModel.CF2X, DroneModel.CF2P]:
         ctrl = [DSLPIDControl(drone_model=drone) for i in range(num_drones)]
 
-    # Test variables
+    # Test variables, segment tracking code currently only works for 1 drone
     line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get("segment_1")["id"])
     coord_line_covers = env.segment_ids.get("segment_1")["coordinates"]
+    drones_segments_completed = np.zeros((num_drones, env.num_segments))  # Tracks the segments completed by drone
+    current_segment_completion = np.zeros(10)                             # Tracks current segment completed sections
+    current_segment_idx = 0                                               # Tracks the current segment
 
     # Run the simulation
     START = time.time()
@@ -120,7 +123,7 @@ def run(
         segmented = segment_image(rgb_image)
         mask = red_mask(rgb_image)
         display_drone_image(segmented)  # Use mask here if binary mask, segmented for normal img with lines
-        print(detect_objects(mask))     # Use in combination with segmented above to test correct functionality
+        # print(detect_objects(mask))     # Use in combination with segmented above to test correct functionality
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()
@@ -128,6 +131,11 @@ def run(
             over_line = env.is_drone_over_line(position, line_position)
             over_last_10 = env.is_within_last_10_percent(position, "segment_1")
             drone_segment_position = env.check_drone_position_in_sections(position, "segment_1")
+            current_segment_completion[np.where(drone_segment_position == 1)] = 1
+
+            if np.sum(current_segment_completion) >= 8:
+                drones_segments_completed[z][current_segment_idx] = 1
+
 
             # Print Line and Drone Position to test functionality
             # print(f"Custom Line Position: x={line_position[0]}, y={line_position[1]}, z={line_position[2]}")
@@ -137,6 +145,8 @@ def run(
             print(f"Is drone {z + 1} over the line? {over_line}")
             print(f"Is drone {z + 1} at end of segment? {over_last_10}")
             print(f"Drone {z + 1} position in segment {drone_segment_position}")
+            print(f"Drones current segment completion: {current_segment_completion}")
+            print(f"Drones {z + 1} segments completed: {drones_segments_completed[z]}")
 
         # Render and sync the sim if needed
         env.render()

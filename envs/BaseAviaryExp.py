@@ -986,15 +986,18 @@ class BaseAviary(gym.Env):
                    physicsClientId=self.CLIENT
                    )
 
+        circle_position_exp = [0.35, 0, .01]
+
         # Segment 1
         line_position = [-.5, -.5, .01]
         line_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
+        line_id = p.loadURDF("assets/line.urdf", circle_position_exp, line_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position)}
         
         # Segment 2
         line2_position = [-1.4, -0.77, .01]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
+
         p.loadURDF("assets/line2.urdf",
                    line2_position,
                    line2_orientation,
@@ -1005,7 +1008,7 @@ class BaseAviary(gym.Env):
         circle_position = [0.35, -0.45, .01]
         circle_position_exp = [0.35, 0, .01]
         p.loadURDF("assets/circle.urdf",
-                   circle_position_exp,
+                   line2_position,
                    p.getQuaternionFromEuler([0, 0, 0]),
                    physicsClientId=self.CLIENT
                    )
@@ -1181,9 +1184,6 @@ class BaseAviary(gym.Env):
         )  # Calculate the next step
         return next_step
 
-
-
-
     # Calculates the coordinates covered by a given line
     def calculate_line_coordinates(self, line_position):
         line_x, line_y, _ = line_position
@@ -1216,8 +1216,32 @@ class BaseAviary(gym.Env):
         x_min, x_max, _, _ = self.calculate_line_coordinates(line_position)
         last_10_percent_start = x_max - segment_length * completion_threshold
 
-        # Also checks if the drone is withing the given segment so th y coordinates are checked too
+        # Also checks if the drone is withing the given segment so the y coordinates are checked too
         return last_10_percent_start <= drone_x <= segment_length\
             and self.is_drone_over_line(drone_position, line_position)
+
+    # Checks if the drone is within a given section of a track segment
+    def is_within_section(self, drone_position, line_position, section_start, section_end):
+        drone_x, _, _ = drone_position
+        return section_start <= drone_x <= section_end and self.is_drone_over_line(drone_position, line_position)
+
+    # For all sections of 10% of the full segment, checks if the drone is currently there.
+    def check_drone_position_in_sections(self, drone_position, line_name):
+        num_sections = 10
+        results = np.zeros(num_sections, dtype=int)
+
+        # Get the length of the segment directly from the dictionary, future-proof for different sizes
+        line_position, _ = p.getBasePositionAndOrientation(self.segment_ids.get(line_name)["id"])
+        x_min, x_max, _, _ = self.calculate_line_coordinates(line_position)
+        segment_length = x_max - x_min
+
+        # Iterate over each section and check if the drone is within
+        section_step = segment_length / num_sections
+        for i in range(num_sections):
+            section_start = x_min + i * section_step
+            section_end = x_min + (i + 1) * section_step
+            results[i] = self.is_within_section(drone_position, line_position, section_start, section_end)
+
+        return results
 
 

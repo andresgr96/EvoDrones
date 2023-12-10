@@ -22,7 +22,7 @@ import cv2
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
-from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action
+from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward
 from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image,\
     detect_objects
 from gym_pybullet_drones.utils.Logger import Logger
@@ -112,7 +112,7 @@ def run(
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 
         # Build the action for each drone and take a step, action is random for now
-        action = build_action(num_drones)
+        action = build_action_forward(num_drones)
         obs, reward, terminated, truncated, info = env.step(action)
 
         # Display the camera feed of drone 1
@@ -126,13 +126,17 @@ def run(
         drone_positions = env._getDronePositions()
         for z, position in enumerate(drone_positions):
             over_line = env.is_drone_over_line(position, line_position)
+            over_last_10 = env.is_within_last_10_percent(position, "segment_1")
+            drone_segment_position = env.check_drone_position_in_sections(position, "segment_1")
 
             # Print Line and Drone Position to test functionality
-            print(f"Custom Line Position: x={line_position[0]}, y={line_position[1]}, z={line_position[2]}")
-            print(f"Coordinates Covered: x range= {coord_line_covers[0]} to {coord_line_covers[1]}, "
-                  f"y range= {coord_line_covers[2]} to {coord_line_covers[3]}")
+            # print(f"Custom Line Position: x={line_position[0]}, y={line_position[1]}, z={line_position[2]}")
+            # print(f"Coordinates Covered: x range= {coord_line_covers[0]} to {coord_line_covers[1]}, "
+            #       f"y range= {coord_line_covers[2]} to {coord_line_covers[3]}")
             print(f"Drone {z + 1} Position: x={position[0]}, y={position[1]}, z={position[2]}")
             print(f"Is drone {z + 1} over the line? {over_line}")
+            print(f"Is drone {z + 1} at end of segment? {over_last_10}")
+            print(f"Drone {z + 1} position in segment {drone_segment_position}")
 
         # Render and sync the sim if needed
         env.render()

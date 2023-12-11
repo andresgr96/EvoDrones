@@ -1,18 +1,28 @@
 import cv2
 import numpy as np
 
+
 # Displays the image feedback given an RGB image
 def display_drone_image(rgb_image):
-    cv2.imshow('Drone Camera Image', rgb_image)
+    # if not isinstance(rgb_image, np.ndarray):
+    #     rgb_image = np.array(rgb_image)
+
+    if rgb_image.dtype != np.uint8:
+        rgb_image = (rgb_image * 255).clip(0, 255).astype(np.uint8)  # Convert to uint8 and clip values
+
+    cv2.imshow('Drone Camera Image', cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
     cv2.waitKey(1)
     # cv2.destroyAllWindows()
 
+
 # Computes binary mask for red color
 def red_mask(img):
-    bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, (0, 50, 70), (9, 255, 255))
+    # Ensure img is in uint8 format
+    if img.dtype != np.uint8:
+        img = (img * 255).clip(0, 255).astype(np.uint8)
 
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    mask = cv2.inRange(hsv, (0, 50, 70), (9, 255, 255))
     return mask
 
 

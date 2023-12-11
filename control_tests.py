@@ -122,8 +122,8 @@ def run(
         rgb_image, _, _ = env._getDroneImages(0)
         segmented = segment_image(rgb_image)
         mask = red_mask(rgb_image)
-        display_drone_image(segmented)  # Use mask here if binary mask, segmented for normal img with lines
-        # print(detect_objects(mask))     # Use in combination with segmented above to test correct functionality
+        display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
+        print(detect_objects(mask))     # Use in combination with segmented above to test correct functionality
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()

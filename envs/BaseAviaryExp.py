@@ -983,9 +983,9 @@ class BaseAviary(gym.Env):
         These obstacles are loaded from standard URDF files included in Bullet.
 
         """
-        p.loadURDF("samurai.urdf",
-                   physicsClientId=self.CLIENT
-                   )
+        # p.loadURDF("samurai.urdf",
+        #            physicsClientId=self.CLIENT
+        #            )
 
         circle_position_exp = [0.35, 0, .01]
 

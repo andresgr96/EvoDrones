@@ -53,8 +53,8 @@ def detect_objects(masked_image):
     segment_width = masked_image.shape[1] // num_segments
     segment_height = masked_image.shape[0] // num_segments
     # print(segment_width, segment_height)
-    segment_names = ["Top Left", "Middle Left", "Bottom Left", "Top Center", "Middle Center", "Bottom Center",
-                     "Top Right", "Middle Right", "Bottom Right"]
+    # segment_names = ["Top Left", "Middle Left", "Bottom Left", "Top Center", "Middle Center", "Bottom Center",
+    #                  "Top Right", "Middle Right", "Bottom Right"]
 
     # A cleaner way to define each segment
     for i in range(num_segments):

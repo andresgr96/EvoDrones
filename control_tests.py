@@ -101,12 +101,15 @@ def run(
     if drone in [DroneModel.CF2X, DroneModel.CF2P]:
         ctrl = [DSLPIDControl(drone_model=drone) for i in range(num_drones)]
 
-    # Test variables, segment tracking code currently only works for 1 drone
-    line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get("segment_1")["id"])
-    coord_line_covers = env.segment_ids.get("segment_1")["coordinates"]
+    # Tracking of the current segments information
+    current_segment_idx = 0
+    current_segment_id = current_segment_idx + 2      # For some reason the dictionary starts at id 2
+    current_segment_name = env.get_line_name_by_id(current_segment_id)
+    line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get(current_segment_name)["id"])
+
+    # For completion tracking
     drones_segments_completed = np.zeros((num_drones, env.num_segments))  # Tracks the segments completed by drone
     current_segment_completion = np.zeros(10)                             # Tracks current segment completed sections
-    current_segment_idx = 0                                               # Tracks the current segment
 
     # Run the simulation
     START = time.time()
@@ -123,7 +126,6 @@ def run(
         segmented = segment_image(rgb_image)
         mask = red_mask(rgb_image)
         display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
-        print(detect_objects(mask))     # Use in combination with segmented above to test correct functionality
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()

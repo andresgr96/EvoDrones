@@ -983,39 +983,25 @@ class BaseAviary(gym.Env):
         These obstacles are loaded from standard URDF files included in Bullet.
 
         """
-        # p.loadURDF("samurai.urdf",
-        #            physicsClientId=self.CLIENT
-        #            )
-
-        circle_position_exp = [0.35, 0, .01]
-
         # Segment 1
-        line_position = [-.5, -.5, .01]
+        line_position = [0.35, 0, .01]
         line_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        line_id = p.loadURDF("assets/line.urdf", circle_position_exp, line_orientation, physicsClientId=self.CLIENT)
+        line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position)}
         
         # Segment 2
         line2_position = [-1.4, -0.77, .01]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
-
-        p.loadURDF("assets/line2.urdf",
-                   line2_position,
-                   line2_orientation,
-                   physicsClientId=self.CLIENT
-                   )
+        line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
+        self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position)}
         
         # Landing Circle
         circle_position = [0.35, -0.45, .01]
-        circle_position_exp = [0.35, 0, .01]
-        p.loadURDF("assets/circle.urdf",
-                   line2_position,
-                   p.getQuaternionFromEuler([0, 0, 0]),
-                   physicsClientId=self.CLIENT
-                   )
+        circle_orientation = p.getQuaternionFromEuler([0, 0, 0])
+        circle_id = p.loadURDF("assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
+        # This probably needs changing since the function for coordinates is meant for rectangular lines
+        self.segment_ids["circle"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position)}
 
-
-    
     ################################################################################
     
     def _parseURDFParameters(self):
@@ -1244,5 +1230,8 @@ class BaseAviary(gym.Env):
             results[i] = self.is_within_section(drone_position, line_position, section_start, section_end)
 
         return results
+
+    def get_line_name_by_id(self, search_id):
+        return next((key for key, value in self.segment_ids.items() if value.get('id') == search_id), None)
 
 

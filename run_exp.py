@@ -9,8 +9,8 @@ import numpy as np
 import pybullet as p
 import matplotlib.pyplot as plt
 import cv2
-import EA_deap
-from EA_deap import run_sim
+import EA
+from EA import run_sim
 
 n_runs = 2
 fitnesses = np.zeros(n_runs)

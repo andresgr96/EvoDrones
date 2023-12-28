@@ -82,13 +82,15 @@ def run_sim(
     # Obtain the PyBullet Client ID from the environment
     PYB_CLIENT = env.getPyBulletClient()
 
-    # Test variables, segment tracking code currently only works for 1 drone
-    line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get("segment_1")["id"])
-    coord_line_covers = env.segment_ids.get("segment_1")["coordinates"]
-    drones_segments_completed = np.zeros((num_drones, env.num_segments))  # Tracks the segments completed by drone
-    current_segment_completion = np.zeros(10)                             # Tracks current segment completed sections
-    current_segment_idx = 0                                               # Tracks the current segment
+    # Tracking of the current segments information
+    current_segment_idx = 0
+    current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
+    current_segment_name = env.get_line_name_by_id(current_segment_id)
+    line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get(current_segment_name)["id"])
 
+    # For completion tracking
+    drones_segments_completed = np.zeros((num_drones, env.num_segments))  # Tracks the segments completed by drone
+    current_segment_completion = np.zeros(10)  # Tracks current segment completed sections
 
     # Run the simulation
     START = time.time()
@@ -96,41 +98,24 @@ def run_sim(
     fitness = 0
 
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
-
         # Build the action for each drone and take a step, action is random for now
         action = build_action_forward(num_drones)
         obs, reward, terminated, truncated, info = env.step(action)
 
         # Display the camera feed of drone 1
         rgb_image, _, _ = env._getDroneImages(0)
-        print(rgb_image.shape)
         segmented = segment_image(rgb_image)
         mask = red_mask(rgb_image)
         display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
-        # print(detect_objects(mask))     # Use in combination with segmented above to test correct functionality
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()
         for z, position in enumerate(drone_positions):
-            over_line = env.is_drone_over_line(position, line_position)
-            over_last_10 = env.is_within_last_10_percent(position, "segment_1")
             drone_segment_position = env.check_drone_position_in_sections(position, "segment_1")
             current_segment_completion[np.where(drone_segment_position == 1)] = 1
 
             if np.sum(current_segment_completion) >= 8:
                 drones_segments_completed[z][current_segment_idx] = 1
-
-
-            # Print Line and Drone Position to test functionality
-            # print(f"Custom Line Position: x={line_position[0]}, y={line_position[1]}, z={line_position[2]}")
-            # print(f"Coordinates Covered: x range= {coord_line_covers[0]} to {coord_line_covers[1]}, "
-            #       f"y range= {coord_line_covers[2]} to {coord_line_covers[3]}")
-            # print(f"Drone {z + 1} Position: x={position[0]}, y={position[1]}, z={position[2]}")
-            # print(f"Is drone {z + 1} over the line? {over_line}")
-            # print(f"Is drone {z + 1} at end of segment? {over_last_10}")
-            # print(f"Drone {z + 1} position in segment {drone_segment_position}")
-            # print(f"Drones current segment completion: {current_segment_completion}")
-            # print(f"Drones {z + 1} segments completed: {drones_segments_completed[z]}")
 
         # Render and sync the sim if needed
         env.render()

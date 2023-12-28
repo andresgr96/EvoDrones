@@ -141,12 +141,12 @@ def run(
             # print(f"Custom Line Position: x={line_position[0]}, y={line_position[1]}, z={line_position[2]}")
             # print(f"Coordinates Covered: x range= {coord_line_covers[0]} to {coord_line_covers[1]}, "
             #       f"y range= {coord_line_covers[2]} to {coord_line_covers[3]}")
-            print(f"Drone {z + 1} Position: x={position[0]}, y={position[1]}, z={position[2]}")
-            print(f"Is drone {z + 1} over the line? {over_line}")
-            print(f"Is drone {z + 1} at end of segment? {over_last_10}")
-            print(f"Drone {z + 1} position in segment {drone_segment_position}")
-            print(f"Drones current segment completion: {current_segment_completion}")
-            print(f"Drones {z + 1} segments completed: {drones_segments_completed[z]}")
+            # print(f"Drone {z + 1} Position: x={position[0]}, y={position[1]}, z={position[2]}")
+            # print(f"Is drone {z + 1} over the line? {over_line}")
+            # print(f"Is drone {z + 1} at end of segment? {over_last_10}")
+            # print(f"Drone {z + 1} position in segment {drone_segment_position}")
+            # print(f"Drones current segment completion: {current_segment_completion}")
+            # print(f"Drones {z + 1} segments completed: {drones_segments_completed[z]}")
 
         # Render and sync the sim if needed
         env.render()

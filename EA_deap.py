@@ -103,6 +103,7 @@ def run_sim(
 
         # Display the camera feed of drone 1
         rgb_image, _, _ = env._getDroneImages(0)
+        print(rgb_image.shape)
         segmented = segment_image(rgb_image)
         mask = red_mask(rgb_image)
         display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines

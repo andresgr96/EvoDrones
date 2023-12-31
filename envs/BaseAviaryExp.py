@@ -987,13 +987,13 @@ class BaseAviary(gym.Env):
         line_position = [0.5, 0, .001]
         line_orientation = p.getQuaternionFromEuler([0.1, 0, 0])
         line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
-        self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position)}
+        self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position, line_orientation)}
         
         # Segment 2
         line2_position = [1.5, 0, .001]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
         line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
-        self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position)}
+        self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position, line_orientation)}
         
         # Landing Circle
         circle_position = [2.5, 0, .001]
@@ -1171,23 +1171,39 @@ class BaseAviary(gym.Env):
         )  # Calculate the next step
         return next_step
 
-    # Calculates the coordinates covered by a given line
-    def calculate_line_coordinates(self, line_position):
-        line_x, line_y, _ = line_position
+    # Calculates the coordinates covered by a given line (probably only works for horizontal segments)
+    def calculate_line_coordinates(self, line_position, line_orientation):
+        line_x, line_y, line_z = line_position
         length, width, _ = self.line_size
 
+        # Calculate the rotation matrix based on the line's orientation
+        rotation_matrix = np.array(p.getMatrixFromQuaternion(line_orientation)).reshape((3, 3))
+
         # Calculate the coordinates covered by the line
-        x_min = line_x - length / 2
-        x_max = line_x + length / 2
-        y_min = line_y - width / 2
-        y_max = line_y + width / 2
+        x_offset = length / 2
+        y_offset = width / 2
+
+        # Calculate the corners in the local frame
+        local_corners = np.array([
+            [-x_offset, y_offset, 0],
+            [x_offset, y_offset, 0],
+            [x_offset, -y_offset, 0],
+            [-x_offset, -y_offset, 0]
+        ])
+
+        # Transform the corners to the global frame
+        global_corners = np.dot(local_corners, rotation_matrix.T) + np.array([line_x, line_y, line_z])
+
+        # Return the bounding box in global coordinates
+        x_min, y_min, _ = np.min(global_corners, axis=0)
+        x_max, y_max, _ = np.max(global_corners, axis=0)
 
         return x_min, x_max, y_min, y_max
 
     # Checks if the given drone is over the given segment
-    def is_drone_over_line(self, drone_position, line_position):
+    def is_drone_over_line(self, drone_position, line_position, line_orientation):
         drone_x, drone_y, _ = drone_position
-        x_min, x_max, y_min, y_max = self.calculate_line_coordinates(line_position)
+        x_min, x_max, y_min, y_max = self.calculate_line_coordinates(line_position, line_orientation)
 
         # Check if the drone is over the line
         return x_min <= drone_x <= x_max and y_min <= drone_y <= y_max
@@ -1199,8 +1215,8 @@ class BaseAviary(gym.Env):
         completion_threshold = 0.1
 
         # Get the given segments information
-        line_position, _ = p.getBasePositionAndOrientation(self.segment_ids.get(segment_name)["id"])
-        x_min, x_max, _, _ = self.calculate_line_coordinates(line_position)
+        line_position, line_orientation = p.getBasePositionAndOrientation(self.segment_ids.get(segment_name)["id"])
+        x_min, x_max, _, _ = self.calculate_line_coordinates(line_position, line_orientation)
         last_10_percent_start = x_max - segment_length * completion_threshold
 
         # Also checks if the drone is withing the given segment so the y coordinates are checked too
@@ -1208,9 +1224,10 @@ class BaseAviary(gym.Env):
             and self.is_drone_over_line(drone_position, line_position)
 
     # Checks if the drone is within a given section of a track segment. Returns True if
-    def is_within_section(self, drone_position, line_position, section_start, section_end):
+    def is_within_section(self, drone_position, line_position, line_orientation, section_start, section_end):
         drone_x, _, _ = drone_position
-        return section_start <= drone_x <= section_end and self.is_drone_over_line(drone_position, line_position)
+        return section_start <= drone_x <= section_end and self.is_drone_over_line(drone_position, line_position,
+                                                                                   line_orientation)
 
     # For all sections of 10% of the full segment, checks if the drone is there. Returns an array.
     def check_drone_position_in_sections(self, drone_position, line_name):
@@ -1218,8 +1235,8 @@ class BaseAviary(gym.Env):
         results = np.zeros(num_sections, dtype=int)
 
         # Get the length of the segment directly from the dictionary, future-proof for different sizes
-        line_position, _ = p.getBasePositionAndOrientation(self.segment_ids.get(line_name)["id"])
-        x_min, x_max, _, _ = self.calculate_line_coordinates(line_position)
+        line_position, line_orientation = p.getBasePositionAndOrientation(self.segment_ids.get(line_name)["id"])
+        x_min, x_max, _, _ = self.calculate_line_coordinates(line_position, line_orientation)
         segment_length = x_max - x_min
 
         # Iterate over each section and check if the drone is within it
@@ -1227,7 +1244,7 @@ class BaseAviary(gym.Env):
         for i in range(num_sections):
             section_start = x_min + i * section_step
             section_end = x_min + (i + 1) * section_step
-            results[i] = self.is_within_section(drone_position, line_position, section_start, section_end)
+            results[i] = self.is_within_section(drone_position, line_position, line_orientation, section_start, section_end)
 
         return results
 

@@ -74,23 +74,14 @@ def run_sim(
                      obstacles=obstacles,
                      user_debug_gui=user_debug_gui
                      )
-    # Helper Prints
-    # print("[INFO] Action space:", env.action_space)
-    # print("[INFO] Observation space:", env.observation_space)
-    # print("[INFO] Max RPM:", env.MAX_RPM)
 
-    # Obtain the PyBullet Client ID from the environment
-    PYB_CLIENT = env.getPyBulletClient()
-
-    # Tracking of the current segments information
+    # Set the current segment to the first in case drone does not start on it for some reason
     current_segment_idx = 0
-    current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
-    current_segment_name = env.get_line_name_by_id(current_segment_id)
-    line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get(current_segment_name)["id"])
 
     # For completion tracking
-    drones_segments_completed = np.zeros((num_drones, env.num_segments))  # Tracks the segments completed by drone
-    current_segment_completion = np.zeros(10)  # Tracks current segment completed sections
+    drones_segments_completed = np.zeros((num_drones, env.num_segments))   # Tracks the segments completed by drone
+    segment_completion = np.zeros((env.num_segments, 10))                  # Tracks completed sections for all segments
+    current_segment_completion = np.zeros(10)                              # Tracks current segment completed sections
 
     # Run the simulation
     START = time.time()
@@ -98,6 +89,7 @@ def run_sim(
     fitness = 0
 
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
+
         # Build the action for each drone and take a step, action is random for now
         action = build_action_forward(num_drones)
         obs, reward, terminated, truncated, info = env.step(action)
@@ -108,12 +100,25 @@ def run_sim(
         mask = red_mask(rgb_image)
         display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
 
-        # Calculate if the drones are over a segment, currently only checks for the same segment.
+        # Main loop to access multiple drones, can be removed if no swarm (the loop not the whole thing)
         drone_positions = env._getDronePositions()
         for z, position in enumerate(drone_positions):
-            drone_segment_position = env.check_drone_position_in_sections(position, "segment_1")
+            segment_idx = env.get_current_segment(position)
+
+            # Automatically set current segment by drone position
+            if segment_idx is not None:
+                current_segment_idx = env.get_current_segment(position) - 2
+
+            # Get the segments name (can probably refactor to only use id for everything)
+            current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
+            current_segment_name = env.get_segment_name_by_id(current_segment_id)
+
+            # Get the segment position to calculate its completion by drones position
+            drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
+            segment_completion[current_segment_idx][drone_segment_position == 1] = 1
             current_segment_completion[np.where(drone_segment_position == 1)] = 1
 
+            # If the drone has completed 80% of a segment then we consider it complete
             if np.sum(current_segment_completion) >= 8:
                 drones_segments_completed[z][current_segment_idx] = 1
 

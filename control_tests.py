@@ -104,7 +104,7 @@ def run(
     # Tracking of the current segments information
     current_segment_idx = 0
     current_segment_id = current_segment_idx + 2      # For some reason the dictionary starts at id 2
-    current_segment_name = env.get_line_name_by_id(current_segment_id)
+    current_segment_name = env.get_segment_name_by_id(current_segment_id)
     line_position, _ = p.getBasePositionAndOrientation(env.segment_ids.get(current_segment_name)["id"])
 
     # For completion tracking

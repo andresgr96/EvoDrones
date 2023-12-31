@@ -990,7 +990,7 @@ class BaseAviary(gym.Env):
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position)}
         
         # Segment 2
-        line2_position = [-1.4, -0.77, .01]
+        line2_position = [1.37, 0, .01]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
         line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position)}
@@ -1184,7 +1184,7 @@ class BaseAviary(gym.Env):
 
         return x_min, x_max, y_min, y_max
 
-    # Checks if the given drone is over the given line
+    # Checks if the given drone is over the given segment
     def is_drone_over_line(self, drone_position, line_position):
         drone_x, drone_y, _ = drone_position
         x_min, x_max, y_min, y_max = self.calculate_line_coordinates(line_position)
@@ -1231,7 +1231,23 @@ class BaseAviary(gym.Env):
 
         return results
 
-    def get_line_name_by_id(self, search_id):
+    def get_segment_name_by_id(self, search_id):
         return next((key for key, value in self.segment_ids.items() if value.get('id') == search_id), None)
+
+    def get_segment_position(self, current_segment_name):
+        line_position, _ = p.getBasePositionAndOrientation(self.segment_ids.get(current_segment_name)["id"])
+        return line_position
+
+    def get_current_segment(self, drone_position):
+        for _, segment_info in self.segment_ids.items():
+            segment_coordinates = segment_info['coordinates']
+            x_min, x_max, y_min, y_max = segment_coordinates
+            drone_x, drone_y, _ = drone_position
+
+            if x_min <= drone_x <= x_max and y_min <= drone_y <= y_max:
+                return segment_info['id']
+
+        # If the drone is not in any segment, return None, so we can condition it in EA
+        return None
 
 

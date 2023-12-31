@@ -115,8 +115,9 @@ def run_sim(
 
             # Get the segment position to calculate its completion by drones position
             drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
-            segment_completion[current_segment_idx][drone_segment_position == 1] = 1
-            current_segment_completion[np.where(drone_segment_position == 1)] = 1
+            segment_completion[current_segment_idx][drone_segment_position == 1] = 1   # All segments
+            print(segment_completion)
+            current_segment_completion[np.where(drone_segment_position == 1)] = 1      # Current Segment
 
             # If the drone has completed 80% of a segment then we consider it complete
             if np.sum(current_segment_completion) >= 8:

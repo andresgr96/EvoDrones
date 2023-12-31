@@ -114,8 +114,8 @@ class BaseAviary(gym.Env):
         self.DW_COEFF_1, \
         self.DW_COEFF_2, \
         self.DW_COEFF_3 = self._parseURDFParameters()
-        print("[INFO] BaseAviary.__init__() loaded parameters from the drone's .urdf:\n[INFO] m {:f}, L {:f},\n[INFO] ixx {:f}, iyy {:f}, izz {:f},\n[INFO] kf {:f}, km {:f},\n[INFO] t2w {:f}, max_speed_kmh {:f},\n[INFO] gnd_eff_coeff {:f}, prop_radius {:f},\n[INFO] drag_xy_coeff {:f}, drag_z_coeff {:f},\n[INFO] dw_coeff_1 {:f}, dw_coeff_2 {:f}, dw_coeff_3 {:f}".format(
-            self.M, self.L, self.J[0,0], self.J[1,1], self.J[2,2], self.KF, self.KM, self.THRUST2WEIGHT_RATIO, self.MAX_SPEED_KMH, self.GND_EFF_COEFF, self.PROP_RADIUS, self.DRAG_COEFF[0], self.DRAG_COEFF[2], self.DW_COEFF_1, self.DW_COEFF_2, self.DW_COEFF_3))
+        # print("[INFO] BaseAviary.__init__() loaded parameters from the drone's .urdf:\n[INFO] m {:f}, L {:f},\n[INFO] ixx {:f}, iyy {:f}, izz {:f},\n[INFO] kf {:f}, km {:f},\n[INFO] t2w {:f}, max_speed_kmh {:f},\n[INFO] gnd_eff_coeff {:f}, prop_radius {:f},\n[INFO] drag_xy_coeff {:f}, drag_z_coeff {:f},\n[INFO] dw_coeff_1 {:f}, dw_coeff_2 {:f}, dw_coeff_3 {:f}".format(
+        #     self.M, self.L, self.J[0,0], self.J[1,1], self.J[2,2], self.KF, self.KM, self.THRUST2WEIGHT_RATIO, self.MAX_SPEED_KMH, self.GND_EFF_COEFF, self.PROP_RADIUS, self.DRAG_COEFF[0], self.DRAG_COEFF[2], self.DW_COEFF_1, self.DW_COEFF_2, self.DW_COEFF_3))
         #### Compute constants #####################################
         self.GRAVITY = self.G*self.M
         self.HOVER_RPM = np.sqrt(self.GRAVITY / (4*self.KF))
@@ -406,15 +406,15 @@ class BaseAviary(gym.Env):
         if self.first_render_call and not self.GUI:
             print("[WARNING] BaseAviary.render() is implemented as text-only, re-initialize the environment using Aviary(gui=True) to use PyBullet's graphical interface")
             self.first_render_call = False
-        print("\n[INFO] BaseAviary.render() ——— it {:04d}".format(self.step_counter),
-              "——— wall-clock time {:.1f}s,".format(time.time()-self.RESET_TIME),
-              "simulation time {:.1f}s@{:d}Hz ({:.2f}x)".format(self.step_counter*self.PYB_TIMESTEP, self.PYB_FREQ, (self.step_counter*self.PYB_TIMESTEP)/(time.time()-self.RESET_TIME)))
-        for i in range (self.NUM_DRONES):
-            print("[INFO] BaseAviary.render() ——— drone {:d}".format(i),
-                  "——— x {:+06.2f}, y {:+06.2f}, z {:+06.2f}".format(self.pos[i, 0], self.pos[i, 1], self.pos[i, 2]),
-                  "——— velocity {:+06.2f}, {:+06.2f}, {:+06.2f}".format(self.vel[i, 0], self.vel[i, 1], self.vel[i, 2]),
-                  "——— roll {:+06.2f}, pitch {:+06.2f}, yaw {:+06.2f}".format(self.rpy[i, 0]*self.RAD2DEG, self.rpy[i, 1]*self.RAD2DEG, self.rpy[i, 2]*self.RAD2DEG),
-                  "——— angular velocity {:+06.4f}, {:+06.4f}, {:+06.4f} ——— ".format(self.ang_v[i, 0], self.ang_v[i, 1], self.ang_v[i, 2]))
+        # print("\n[INFO] BaseAviary.render() ——— it {:04d}".format(self.step_counter),
+        #       "——— wall-clock time {:.1f}s,".format(time.time()-self.RESET_TIME),
+        #       "simulation time {:.1f}s@{:d}Hz ({:.2f}x)".format(self.step_counter*self.PYB_TIMESTEP, self.PYB_FREQ, (self.step_counter*self.PYB_TIMESTEP)/(time.time()-self.RESET_TIME)))
+        # for i in range (self.NUM_DRONES):
+        #     print("[INFO] BaseAviary.render() ——— drone {:d}".format(i),
+        #           "——— x {:+06.2f}, y {:+06.2f}, z {:+06.2f}".format(self.pos[i, 0], self.pos[i, 1], self.pos[i, 2]),
+        #           "——— velocity {:+06.2f}, {:+06.2f}, {:+06.2f}".format(self.vel[i, 0], self.vel[i, 1], self.vel[i, 2]),
+        #           "——— roll {:+06.2f}, pitch {:+06.2f}, yaw {:+06.2f}".format(self.rpy[i, 0]*self.RAD2DEG, self.rpy[i, 1]*self.RAD2DEG, self.rpy[i, 2]*self.RAD2DEG),
+        #           "——— angular velocity {:+06.4f}, {:+06.4f}, {:+06.4f} ——— ".format(self.ang_v[i, 0], self.ang_v[i, 1], self.ang_v[i, 2]))
     
     ################################################################################
 
@@ -984,23 +984,23 @@ class BaseAviary(gym.Env):
 
         """
         # Segment 1
-        line_position = [0.35, 0, .01]
-        line_orientation = p.getQuaternionFromEuler([0, 0, 0])
+        line_position = [0.5, 0, .001]
+        line_orientation = p.getQuaternionFromEuler([0.1, 0, 0])
         line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position)}
         
         # Segment 2
-        line2_position = [1.37, 0, .01]
+        line2_position = [1.5, 0, .001]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
         line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position)}
         
         # Landing Circle
-        circle_position = [0.35, -0.45, .01]
+        circle_position = [2.5, 0, .001]
         circle_orientation = p.getQuaternionFromEuler([0, 0, 0])
         circle_id = p.loadURDF("assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
         # This probably needs changing since the function for coordinates is meant for rectangular lines
-        self.segment_ids["circle"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position)}
+        # self.segment_ids["circle"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position)}
 
     ################################################################################
     
@@ -1207,12 +1207,12 @@ class BaseAviary(gym.Env):
         return last_10_percent_start <= drone_x <= segment_length\
             and self.is_drone_over_line(drone_position, line_position)
 
-    # Checks if the drone is within a given section of a track segment
+    # Checks if the drone is within a given section of a track segment. Returns True if
     def is_within_section(self, drone_position, line_position, section_start, section_end):
         drone_x, _, _ = drone_position
         return section_start <= drone_x <= section_end and self.is_drone_over_line(drone_position, line_position)
 
-    # For all sections of 10% of the full segment, checks if the drone is currently there.
+    # For all sections of 10% of the full segment, checks if the drone is there. Returns an array.
     def check_drone_position_in_sections(self, drone_position, line_name):
         num_sections = 10
         results = np.zeros(num_sections, dtype=int)
@@ -1231,13 +1231,16 @@ class BaseAviary(gym.Env):
 
         return results
 
+    # Returns the name of a segment according to the segment id.
     def get_segment_name_by_id(self, search_id):
         return next((key for key, value in self.segment_ids.items() if value.get('id') == search_id), None)
 
+    # Returns the position of the given segment
     def get_segment_position(self, current_segment_name):
         line_position, _ = p.getBasePositionAndOrientation(self.segment_ids.get(current_segment_name)["id"])
         return line_position
 
+    # Checks if the drone is within a segment, if it is returns the segment id.
     def get_current_segment(self, drone_position):
         for _, segment_info in self.segment_ids.items():
             segment_coordinates = segment_info['coordinates']

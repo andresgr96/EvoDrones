@@ -4,10 +4,10 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="0.00"/> <!-- Set a very small mass value -->
-      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/> <!-- Set very small inertia values -->
+      <inertia ixx="1e-10" ixy="0" ixz="0" iyy="1e-10" iyz="0" izz="1e-10"/> <!-- Set very small inertia values -->
     </inertial>
     <visual>
-      <origin rpy="0 0 0.1" xyz="0 0 0.01"/> <!-- Adjust the Z coordinate to raise the line above the ground -->
+      <origin rpy="0 0 0" xyz="0 0 0.01"/> <!-- Adjust the Z coordinate to raise the line above the ground -->
       <geometry>
         <box size="1 0.2 0.01" />
       </geometry>
@@ -16,9 +16,9 @@
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0.1" xyz="0 0 0.1"/> <!-- Adjust the Z coordinate to raise the collision geometry above the ground -->
+      <origin rpy="0 0 0" xyz="0 0 0"/> <!-- Adjust the Z coordinate to raise the collision geometry above the ground -->
       <geometry>
-        <box size="1 0.2 0.01" />
+        <box size="0 0 0" />
       </geometry>
     </collision>
   </link>

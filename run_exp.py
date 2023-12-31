@@ -7,8 +7,6 @@ import math
 import random
 import numpy as np
 import pybullet as p
-import matplotlib.pyplot as plt
-import cv2
 import EA
 from EA import run_sim
 

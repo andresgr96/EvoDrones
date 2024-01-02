@@ -17,9 +17,12 @@ def build_action(num_drones):
 
 
 def build_action_forward(num_drones):
-    # Four rotors
-    action_space = 4
-    action = np.array([[14950.01, 15000.01, 15000.01, 14950.01]])
+    side = True       # Fly sideways or upwards (both positively)
+
+    if side:
+        action = np.array([[14950.01, 15000.01, 15000.01, 14950.01]])
+    else:
+        action = np.array([[15000.01, 15000.01, 14950.01, 14950.01]])
     # print(action)
 
     return action

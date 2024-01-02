@@ -109,15 +109,20 @@ def run_sim(
             if segment_idx is not None:
                 current_segment_idx = env.get_current_segment(position) - 2
 
-            # Get the segments name (can probably refactor to only use id for everything)
-            current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
-            current_segment_name = env.get_segment_name_by_id(current_segment_id)
+                # Get the segments name (can probably refactor to only use id for everything)
+                current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
+                current_segment_name = env.get_segment_name_by_id(current_segment_id)
+                # line_position, line_orientation = p.getBasePositionAndOrientation(current_segment_id)
+                # print(current_segment_id)
+                # print(env.calculate_line_coordinates(line_position, line_orientation))
 
-            # Get the segment position to calculate its completion by drones position
-            drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
-            segment_completion[current_segment_idx][drone_segment_position == 1] = 1   # All segments
-            print(segment_completion)
-            current_segment_completion[np.where(drone_segment_position == 1)] = 1      # Current Segment
+                # Get the segment position to calculate its completion by drones position
+                drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
+                segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
+                print(segment_completion)
+                current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
+
+
 
             # If the drone has completed 80% of a segment then we consider it complete
             if np.sum(current_segment_completion) >= 8:

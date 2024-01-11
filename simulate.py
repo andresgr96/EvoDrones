@@ -30,12 +30,13 @@ DEFAULT_USER_DEBUG_GUI = False
 DEFAULT_OBSTACLES = True
 DEFAULT_SIMULATION_FREQ_HZ = 240
 DEFAULT_CONTROL_FREQ_HZ = 48
-DEFAULT_DURATION_SEC = 6
+DEFAULT_DURATION_SEC = 1
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
 
 
 def run_sim(
+        individual: np.array,
         drone=DEFAULT_DRONES,
         num_drones=DEFAULT_NUM_DRONES,
         physics=DEFAULT_PHYSICS,
@@ -119,7 +120,7 @@ def run_sim(
                 # Get the segment position to calculate its completion by drones position
                 drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
                 segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
-                print(segment_completion)
+                # print(segment_completion)
                 current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
 
 

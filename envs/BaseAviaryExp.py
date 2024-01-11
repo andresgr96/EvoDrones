@@ -1249,7 +1249,7 @@ class BaseAviary(gym.Env):
         results = np.zeros(num_sections, dtype=int)
         segment_id = self.segment_ids.get(line_name)["id"]
         is_horizontal = segment_id % 2 == 0
-        print(is_horizontal)
+        # print(is_horizontal)
 
         # Get the length of the segment directly from the dictionary, future-proof for different sizes
         line_position, line_orientation = p.getBasePositionAndOrientation(self.segment_ids.get(line_name)["id"])

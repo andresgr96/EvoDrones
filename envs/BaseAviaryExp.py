@@ -72,6 +72,7 @@ class BaseAviary(gym.Env):
         """
         #### Constants #############################################
         self.segment_ids = {}  # Dictionary to store object IDs
+        self.circle_info = {}
         self.num_segments = 3  # Store number of segments, would be good to auto this when we have the track builder
         self.G = 9.8
         self.RAD2DEG = 180/np.pi
@@ -991,22 +992,32 @@ class BaseAviary(gym.Env):
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position,
                                                                                                        line_orientation)}
         # Segment 2
-        line2_position = [1.1, 0.4, .001]
-        line2_orientation = p.getQuaternionFromEuler([0, 0, 1.57])
+        # line2_position = [1.1, 0.4, .001]
+        # line2_orientation = p.getQuaternionFromEuler([0, 0, 1.57])
+        # line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
+        # self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position,
+        #                                                                                                 line2_orientation)}
+        line2_position = [1.5, 0.0, .001]
+        line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
         line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position,
                                                                                                         line2_orientation)}
-        # Segment 3
-        line3_position = [1.7, 0.8, .001]
-        line3_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        line3_id = p.loadURDF("assets/line.urdf", line3_position, line3_orientation, physicsClientId=self.CLIENT)
-        self.segment_ids["segment_3"] = {"id": line3_id, "coordinates": self.calculate_line_coordinates(line3_position,
-                                                                                                        line3_orientation)}
+        # # Segment 3
+        # line3_position = [1.7, 0.8, .001]
+        # line3_orientation = p.getQuaternionFromEuler([0, 0, 0])
+        # line3_id = p.loadURDF("assets/line.urdf", line3_position, line3_orientation, physicsClientId=self.CLIENT)
+        # self.segment_ids["segment_3"] = {"id": line3_id, "coordinates": self.calculate_line_coordinates(line3_position,
+        #                                                                                                 line3_orientation)}
 
         # Landing Circle
-        circle_position = [2.5, 0.8, .001]
+        # circle_position = [2.5, 0.8, .001]
+        circle_position = [2.5, 0.0, .001]
         circle_orientation = p.getQuaternionFromEuler([0, 0, 0])
         circle_id = p.loadURDF("assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
+        self.segment_ids["segment_0"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position,
+                                                                                                        circle_orientation)}
+        self.circle_info = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position,
+                                                                                                        circle_orientation)}
         # This probably needs changing since the function for coordinates is meant for rectangular lines
         # self.segment_ids["circle"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position)}
 

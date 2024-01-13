@@ -33,6 +33,13 @@ def segment_image(img):
     num_segments = 3
     segment_width = img.shape[1] // num_segments
     segment_height = img.shape[0] // num_segments
+    
+    if not isinstance(img, np.ndarray):
+        print("Image is not a numpy array.")
+        return None
+
+    if img.dtype != np.uint8:
+        img = img.astype(np.uint8)
 
     for i in range(1, num_segments):
         x_position = i * segment_width

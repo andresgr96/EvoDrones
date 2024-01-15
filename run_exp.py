@@ -6,23 +6,37 @@ import numpy as np
 from evolution import evolve_population
 from utils.logger import log_gen
 
-n_gens = 2
-population = np.random.uniform(2000, 3000, size=(2, 5))
+import neat
+import pickle
+from simulate import run_sim
 
-# Enter a name in the terminal
-experiment_name = input("Enter name of experiment: ")
+def eval_genomes(genomes, config):
+    for i, (genome_id, genome) in enumerate(genomes):
+        genome.fitness = 0
+        run_sim(genome, config)
+        
+    
+def run_neat(config):
+    p = neat.Population(config)
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(1))
+    
+    winner = p.run(eval_genomes, 5)
+    with open("best.pickle", "wb") as f:
+        pickle.dump(winner, f)
 
-# Run experiment
-print(f"*-----------------------Beginning Experiment: {experiment_name}-----------------------*")
-for i in range(n_gens):
-    curr_gen = i+1
-    print(f"Current Generation: {curr_gen}")
-    population, pop_with_fits = evolve_population(i, population)
+if __name__ == '__main__':
 
-    if curr_gen % 1 == 0:
-        log_gen(experiment_name, curr_gen, pop_with_fits)
+    local_dir = os.path.dirname(__file__)
+    print(local_dir)
+    config_path = os.path.join(local_dir, 'config.txt')
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                            neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                            config_path)
+    run_neat(config)
 
-print("*-----------------------Experiment Ended-----------------------*")
 
 
 

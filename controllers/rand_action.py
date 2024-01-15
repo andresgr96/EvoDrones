@@ -15,6 +15,7 @@ def build_action(num_drones):
     # print(action)
     return action
 
+
 def action_decision(action):
     default = 10000
     if action == 0:

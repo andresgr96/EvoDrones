@@ -30,7 +30,7 @@ def red_mask(img):
 def segment_image(img):
     color = (0, 0, 255)  # red
     thickness = 2
-    num_segments = 3
+    num_segments = 6
     segment_width = img.shape[1] // num_segments
     segment_height = img.shape[0] // num_segments
     
@@ -53,7 +53,7 @@ def segment_image(img):
 
 
 def detect_objects(masked_image):
-    num_segments = 3
+    num_segments = 6
 
     # Define the segments
     segments = []

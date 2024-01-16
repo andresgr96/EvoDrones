@@ -35,11 +35,11 @@ def action_decision(action):
 def build_action_forward(num_drones):
     side = True       # Fly sideways or upwards (both positively)
 
-    deduction = 50
-    default = 15000
+    deduction = 5
+    default = 14750
     r = np.array([[default-50, default-50, default, default]])
     l = np.array([[default, default, default-50, default-50]])
-    f = np.array([[default-50, default, default, default-50]])
+    f = np.array([[default-deduction, default, default, default-deduction]])
     b = np.array([[default, default-50, default-50, default]])
     h = np.array([[default, default, default, default]])
     if side:

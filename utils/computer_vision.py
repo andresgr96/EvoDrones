@@ -68,16 +68,16 @@ def detect_circles(image):
     circles = cv2.HoughCircles(
         blurred,
         cv2.HOUGH_GRADIENT,
-        dp=1,
+        dp=0.5,
         minDist=20,
-        param1=50,
-        param2=30,
-        minRadius=10,
-        maxRadius=50
+        param1=10,
+        param2=20,
+        minRadius=1,
+        maxRadius=300
     )
-
     if circles is not None:
         print("Circle Detected")
+
         # Convert the (x, y) coordinates and radius of the circles to integers
         circles = np.round(circles[0, :]).astype("int")
 

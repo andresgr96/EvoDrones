@@ -127,7 +127,7 @@ def run(
         circle_detect = detect_circles(rgb_image)
         mask = red_mask(rgb_image)
         # print(detect_objects(mask))
-        display_drone_image(rgb_image)
+        display_drone_image(circle_detect)
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()

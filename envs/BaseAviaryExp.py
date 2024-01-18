@@ -1308,8 +1308,20 @@ class BaseAviary(gym.Env):
         # If the drone is not in any segment, return None, so we can condition it in EA
         return None
 
-    # Check if the drone is within the coordinates spanned by the target circle
-    def is_drone_inside_circle(self, drone_position):
+    # Check if the drone landed defined by being within the circle coordinates and flying below a threshold for z
+    def drone_landed(self, drone_position):
+        # Extract coordinates
+        drone_x, drone_y, drone_z = drone_position
+        circle_x, circle_y, _ = self.circle_info.get("position")
+
+        # Calculate distance between drone and circle center
+        distance = np.sqrt((drone_x - circle_x)**2 + (drone_y - circle_y)**2)
+
+        # Check if the drone is inside the circle AND low enough
+        return distance <= self.circle_radius and drone_z <= 0.2
+
+    # Returns the distance within the given drone position and the center of the circle
+    def distance_from_circle(self, drone_position):
         # Extract coordinates
         drone_x, drone_y, _ = drone_position
         circle_x, circle_y, _ = self.circle_info.get("position")
@@ -1317,7 +1329,6 @@ class BaseAviary(gym.Env):
         # Calculate distance between drone and circle center
         distance = np.sqrt((drone_x - circle_x)**2 + (drone_y - circle_y)**2)
 
-        # Check if the drone is inside the circle
-        return distance <= self.circle_radius
+        return distance
 
 

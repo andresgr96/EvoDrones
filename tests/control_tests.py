@@ -137,6 +137,7 @@ def run(
             drone_segment_position = env.check_drone_position_in_sections(position, "segment_1")
             current_segment_completion[np.where(drone_segment_position == 1)] = 1
             print(env.is_drone_inside_circle(position))
+            print(env.distance_from_circle(position))
 
             if np.sum(current_segment_completion) >= 8:
                 drones_segments_completed[z][current_segment_idx] = 1

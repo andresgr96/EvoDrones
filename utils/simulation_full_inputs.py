@@ -123,18 +123,10 @@ def run_sim(
             segmented = segment_image(rgb_image)
             mask = red_mask(rgb_image)
             # display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
-            
-            # for now lets use x,y,z and distance to circle as state (input to NN)
-            # have to control actions, let limmit how long "turning" can occur for before it resets
-            # NN output will be : forward, backward, left, right, (optional : hover)
-            # 2. Pass this state to NN
-            
+
             output = net.activate((x, y, z))
             decision = output.index(max(output))
-            
-            # define one part of fitness as sum of rpm 4x / 4 = 0 (close to), incentives all rotor rpms to be close to the same number
-            
-            # action = build_action_forward(1)
+
             
             # 3. Pass output action to drone
             action = action_decision(decision)

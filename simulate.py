@@ -24,9 +24,9 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = True
+DEFAULT_GUI = False
 DEFAULT_RECORD_VISION = False
-DEFAULT_PLOT = True
+DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
 DEFAULT_OBSTACLES = True
 DEFAULT_SIMULATION_FREQ_HZ = 240
@@ -34,6 +34,7 @@ DEFAULT_CONTROL_FREQ_HZ = 48
 DEFAULT_DURATION_SEC = 3
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
+
 
 def calculate_distance(target, position):
     tx, ty, tz = target
@@ -95,6 +96,7 @@ def run_sim(
 
     # Run the simulation
     START = time.time()
+    genome.fitness = 0
     segments_completed = 0
     
     net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -120,7 +122,7 @@ def run_sim(
             rgb_image, _, _ = env._getDroneImages(0)
             segmented = segment_image(rgb_image)
             mask = red_mask(rgb_image)
-            display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
+            # display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
             
             # for now lets use x,y,z and distance to circle as state (input to NN)
             # have to control actions, let limmit how long "turning" can occur for before it resets

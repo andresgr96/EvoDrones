@@ -14,8 +14,9 @@ import neat
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
-from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, action_decision
-from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image,\
+from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, \
+    action_decision
+from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
     detect_objects
 from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool
@@ -39,27 +40,27 @@ DEFAULT_COLAB = False
 def calculate_distance(target, position):
     tx, ty, tz = target
     x, y, z = position
-    
+
     return -(abs(tx - x) + abs(ty - y) + abs(tz - z))
-    
+
 
 def run_sim(
-    genome,
-    config,
-    # individual: np.array,
-    drone=DEFAULT_DRONES,
-    num_drones=DEFAULT_NUM_DRONES,
-    physics=DEFAULT_PHYSICS,
-    gui=DEFAULT_GUI,
-    record_video=DEFAULT_RECORD_VISION,
-    plot=DEFAULT_PLOT,
-    user_debug_gui=DEFAULT_USER_DEBUG_GUI,
-    obstacles=DEFAULT_OBSTACLES,
-    simulation_freq_hz=DEFAULT_SIMULATION_FREQ_HZ,
-    control_freq_hz=DEFAULT_CONTROL_FREQ_HZ,
-    duration_sec=DEFAULT_DURATION_SEC,
-    output_folder=DEFAULT_OUTPUT_FOLDER,
-    colab=DEFAULT_COLAB
+        genome,
+        config,
+        # individual: np.array,
+        drone=DEFAULT_DRONES,
+        num_drones=DEFAULT_NUM_DRONES,
+        physics=DEFAULT_PHYSICS,
+        gui=DEFAULT_GUI,
+        record_video=DEFAULT_RECORD_VISION,
+        plot=DEFAULT_PLOT,
+        user_debug_gui=DEFAULT_USER_DEBUG_GUI,
+        obstacles=DEFAULT_OBSTACLES,
+        simulation_freq_hz=DEFAULT_SIMULATION_FREQ_HZ,
+        control_freq_hz=DEFAULT_CONTROL_FREQ_HZ,
+        duration_sec=DEFAULT_DURATION_SEC,
+        output_folder=DEFAULT_OUTPUT_FOLDER,
+        colab=DEFAULT_COLAB
 ):
     # Initialize the simulation
     H = .1
@@ -90,72 +91,82 @@ def run_sim(
     current_segment_idx = 0
 
     # For completion tracking
-    drones_segments_completed = np.zeros((num_drones, env.num_segments))   # Tracks the segments completed by drone
-    segment_completion = np.zeros((env.num_segments, 10))                  # Tracks completed sections for all segments
-    current_segment_completion = np.zeros(10)                              # Tracks current segment completed sections
+    drones_segments_completed = np.zeros((num_drones, env.num_segments))  # Tracks the segments completed by drone
+    segment_completion = np.zeros((env.num_segments, 10))  # Tracks completed sections for all segments
+    current_segment_completion = np.zeros(10)  # Tracks current segment completed sections
 
     # Run the simulation
     START = time.time()
     genome.fitness = 0
     segments_completed = 0
-    
+
     net = neat.nn.FeedForwardNetwork.create(genome, config)
 
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
-        
+
         # At each time step we want to :
-       
+
         drone_positions = env._getDronePositions()
         for z, position in enumerate(drone_positions):
-            
+
             x, y, z = position
-            
+
             # 0. Get to hover
             if z < 0.2:
                 # print(z)
                 action = to_hover()
                 obs, reward, terminated, truncated, info = env.step(action)
                 break
-            
+
             # 1. Observe current state
             # Display the camera feed of drone 1
             rgb_image, _, _ = env._getDroneImages(0)
             segmented = segment_image(rgb_image)
             mask = red_mask(rgb_image)
             # display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
-            
-            # for now lets use x,y,z and distance to circle as state (input to NN)
-            # have to control actions, let limmit how long "turning" can occur for before it resets
-            # NN output will be : forward, backward, left, right, (optional : hover)
-            # 2. Pass this state to NN
-            
+
             output = net.activate((x, y, z))
             decision = output.index(max(output))
 
+            # 3. Pass output action to drone
             action = action_decision(decision)
             obs, reward, terminated, truncated, info = env.step(action)
-            
 
-            segment_idx = env.get_current_segment(position)
-            current_segment_idx = env.get_current_segment(position) - 2
+            # 4. Observe segment number we are at and calculate fitness
+            # From output (array of 4), before turning get to hover?
+            # segment_idx = env.get_current_segment(position)
+
+            # if segment_idx is None:
+            #     distance = calculate_distance((2.5, 0.0, .001), position)
+            #     genome.fitness += distance
+            #     env.close()
+            #     return distance
+
+            # current_segment_idx = env.get_current_segment(position) - 2
             # print('id', current_segment_idx)
             # # print(current_segment_idx, position)
-            
+
             # # Get the segments name (can probably refactor to only use id for everything)
-            current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
-            current_segment_name = env.get_segment_name_by_id(current_segment_id)
-            
+            # current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
+            # current_segment_name = env.get_segment_name_by_id(current_segment_id)
+
             # # Get the segment position to calculate its completion by drones position
-            drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
-            segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
-            current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
-                
-            # If the drone has completed 80% of a segment then we consider it complete
-            if np.sum(current_segment_completion) >= 8:
-                drones_segments_completed[z][current_segment_idx] = 1
-            
-            segment_reward = np.sum(drones_segments_completed[0, :])
-                
+            # drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
+            # segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
+
+            # current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
+
+            # # If the drone has completed 80% of a segment then we consider it complete
+            # if np.sum(current_segment_completion) >= 8:
+            #     drones_segments_completed[z][current_segment_idx] = 1
+
+            # fitness = np.sum(drones_segments_completed[0, :])
+
+            distance = calculate_distance((2.5, 0.0, .001), position)
+            if distance > -0.1:
+                genome.fitness += distance
+                env.close()
+                return distance
 
         # Render and sync the sim if needed
         env.render()
@@ -163,11 +174,10 @@ def run_sim(
         if gui:
             sync(i, START, env.CTRL_TIMESTEP)
 
-    genome.fitness += segment_reward
+    genome.fitness += distance
     print('fitness', distance)
-    
+
     # Close the environment and return fitness
     env.close()
 
-    
     return distance

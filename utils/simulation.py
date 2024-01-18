@@ -131,53 +131,30 @@ def run_sim(
             
             output = net.activate((x, y, z))
             decision = output.index(max(output))
-            
-            # define one part of fitness as sum of rpm 4x / 4 = 0 (close to), incentives all rotor rpms to be close to the same number
-            # or need some kind of control system (pid?)
-            
-            # action = build_action_forward(1)
-            
-            # 3. Pass output action to drone
+
             action = action_decision(decision)
             obs, reward, terminated, truncated, info = env.step(action)
             
-            # 4. Observe segment number we are at and calculate fitness
-            # From output (array of 4), before turning get to hover?
-            # segment_idx = env.get_current_segment(position)
-            
-            
-            # if segment_idx is None:
-            #     distance = calculate_distance((2.5, 0.0, .001), position)
-            #     genome.fitness += distance
-            #     env.close()
-            #     return distance
-            
-            
-            # current_segment_idx = env.get_current_segment(position) - 2
+
+            segment_idx = env.get_current_segment(position)
+            current_segment_idx = env.get_current_segment(position) - 2
             # print('id', current_segment_idx)
             # # print(current_segment_idx, position)
             
             # # Get the segments name (can probably refactor to only use id for everything)
-            # current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
-            # current_segment_name = env.get_segment_name_by_id(current_segment_id)
+            current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
+            current_segment_name = env.get_segment_name_by_id(current_segment_id)
             
             # # Get the segment position to calculate its completion by drones position
-            # drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
-            # segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
-            
-            # current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
+            drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
+            segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
+            current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
                 
-            # # If the drone has completed 80% of a segment then we consider it complete
-            # if np.sum(current_segment_completion) >= 8:
-            #     drones_segments_completed[z][current_segment_idx] = 1
+            # If the drone has completed 80% of a segment then we consider it complete
+            if np.sum(current_segment_completion) >= 8:
+                drones_segments_completed[z][current_segment_idx] = 1
             
-            # fitness = np.sum(drones_segments_completed[0, :])
-            
-            distance = calculate_distance((2.5, 0.0, .001), position)
-            if distance > -0.1:
-                genome.fitness += distance
-                env.close()
-                return distance
+            segment_reward = np.sum(drones_segments_completed[0, :])
                 
 
         # Render and sync the sim if needed
@@ -186,7 +163,7 @@ def run_sim(
         if gui:
             sync(i, START, env.CTRL_TIMESTEP)
 
-    genome.fitness += distance
+    genome.fitness += segment_reward
     print('fitness', distance)
     
     # Close the environment and return fitness

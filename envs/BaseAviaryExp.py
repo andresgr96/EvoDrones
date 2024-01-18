@@ -80,6 +80,7 @@ class BaseAviary(gym.Env):
         self.CTRL_FREQ = ctrl_freq
         self.PYB_FREQ = pyb_freq
         self.line_size = [1, 0.2, 0.01]
+        self.circle_radius = 0.2
         if self.PYB_FREQ % self.CTRL_FREQ != 0:
             raise ValueError('[ERROR] in BaseAviary.__init__(), pyb_freq is not divisible by env_freq.')
         self.PYB_STEPS_PER_CTRL = int(self.PYB_FREQ / self.CTRL_FREQ)
@@ -988,7 +989,7 @@ class BaseAviary(gym.Env):
         # Segment 1
         line_position = [0.5, 0, .001]
         line_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        line_id = p.loadURDF("assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
+        line_id = p.loadURDF("../assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position,
                                                                                                        line_orientation)}
         # Segment 2
@@ -999,7 +1000,7 @@ class BaseAviary(gym.Env):
         #                                                                                                 line2_orientation)}
         line2_position = [1.5, 0.0, .001]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
+        line2_id = p.loadURDF("../assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position,
                                                                                                         line2_orientation)}
         # # Segment 3
@@ -1010,14 +1011,10 @@ class BaseAviary(gym.Env):
         #                                                                                                 line3_orientation)}
 
         # Landing Circle
-        # circle_position = [2.5, 0.8, .001]
         circle_position = [2.5, 0.0, .001]
         circle_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        circle_id = p.loadURDF("assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
-        self.segment_ids["segment_0"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position,
-                                                                                                        circle_orientation)}
-        self.circle_info = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position,
-                                                                                                        circle_orientation)}
+        circle_id = p.loadURDF("../assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
+        self.circle_info = {"id": circle_id, "position": circle_position}
         # This probably needs changing since the function for coordinates is meant for rectangular lines
         # self.segment_ids["circle"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position)}
 
@@ -1310,5 +1307,17 @@ class BaseAviary(gym.Env):
 
         # If the drone is not in any segment, return None, so we can condition it in EA
         return None
+
+    # Check if the drone is within the coordinates spanned by the target circle
+    def is_drone_inside_circle(self, drone_position):
+        # Extract coordinates
+        drone_x, drone_y, _ = drone_position
+        circle_x, circle_y, _ = self.circle_info.get("position")
+
+        # Calculate distance between drone and circle center
+        distance = np.sqrt((drone_x - circle_x)**2 + (drone_y - circle_y)**2)
+
+        # Check if the drone is inside the circle
+        return distance <= self.circle_radius
 
 

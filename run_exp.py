@@ -1,14 +1,9 @@
 import os
-import time
-import argparse
 from datetime import datetime
-import numpy as np
-from evolution import evolve_population
-from utils.logger import log_gen
 
 import neat
 import pickle
-from simulate import run_sim
+from gym_pybullet_drones.EvoDrones.utils.simulation import run_sim
 
 
 def eval_genomes(genomes, config):

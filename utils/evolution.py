@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from simulate import run_sim
+from simulation import run_sim
 
 
 # Dummy EA to prepare experiment manager

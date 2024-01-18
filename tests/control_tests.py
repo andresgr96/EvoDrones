@@ -24,7 +24,7 @@ from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
 from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward
 from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image,\
-    detect_objects
+    detect_objects, detect_circles
 from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool
 
@@ -124,9 +124,10 @@ def run(
         # Display the camera feed of drone 1
         rgb_image, _, _ = env._getDroneImages(0)
         segmented = segment_image(rgb_image)
+        circle_detect = detect_circles(rgb_image)
         mask = red_mask(rgb_image)
-        print(detect_objects(mask))
-        display_drone_image(segmented)  # Use mask here if binary mask, segmented for normal img with lines
+        # print(detect_objects(mask))
+        display_drone_image(circle_detect)
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()

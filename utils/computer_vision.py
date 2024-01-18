@@ -52,6 +52,42 @@ def segment_image(img):
     return img
 
 
+def detect_circles(image):
+
+    # Ensure the image has the correct depth (8 bits per channel)
+    if image.dtype != np.uint8:
+        image = (image * 255).clip(0, 255).astype(np.uint8)
+
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Apply GaussianBlur to reduce noise and help the circle detection
+    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+
+    # Use HoughCircles to detect circles
+    circles = cv2.HoughCircles(
+        blurred,
+        cv2.HOUGH_GRADIENT,
+        dp=0.5,
+        minDist=20,
+        param1=10,
+        param2=20,
+        minRadius=1,
+        maxRadius=300
+    )
+    if circles is not None:
+        print("Circle Detected")
+
+        # Convert the (x, y) coordinates and radius of the circles to integers
+        circles = np.round(circles[0, :]).astype("int")
+
+        # Draw the circles on the image
+        for (x, y, r) in circles:
+            cv2.circle(image, (x, y), r, (0, 255, 0), 4)
+
+    return image
+
+
 def detect_objects(masked_image):
     num_segments = 6
 

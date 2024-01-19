@@ -77,6 +77,7 @@ def detect_circles(image):
     )
     if circles is not None:
         print("Circle Detected")
+        return 1
 
         # Convert the (x, y) coordinates and radius of the circles to integers
         circles = np.round(circles[0, :]).astype("int")
@@ -85,7 +86,7 @@ def detect_circles(image):
         for (x, y, r) in circles:
             cv2.circle(image, (x, y), r, (0, 255, 0), 4)
 
-    return image
+    return 0
 
 
 def detect_objects(masked_image):

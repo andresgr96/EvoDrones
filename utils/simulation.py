@@ -25,7 +25,7 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = True
+DEFAULT_GUI = False
 DEFAULT_RECORD_VISION = False
 DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
@@ -125,48 +125,36 @@ def run_sim(
             mask = red_mask(rgb_image)
             # display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
 
+            # for now lets use x,y,z and distance to circle as state (input to NN)
+            # have to control actions, let limmit how long "turning" can occur for before it resets
+            # NN output will be : forward, backward, left, right, (optional : hover)
+            # 2. Pass this state to NN
+
             output = net.activate((x, y, z))
             decision = output.index(max(output))
 
-            # 3. Pass output action to drone
             action = action_decision(decision)
             obs, reward, terminated, truncated, info = env.step(action)
 
-            # 4. Observe segment number we are at and calculate fitness
-            # From output (array of 4), before turning get to hover?
-            # segment_idx = env.get_current_segment(position)
-
-            # if segment_idx is None:
-            #     distance = calculate_distance((2.5, 0.0, .001), position)
-            #     genome.fitness += distance
-            #     env.close()
-            #     return distance
-
-            # current_segment_idx = env.get_current_segment(position) - 2
+            segment_idx = env.get_current_segment(position)
+            current_segment_idx = env.get_current_segment(position) - 2
             # print('id', current_segment_idx)
             # # print(current_segment_idx, position)
 
             # # Get the segments name (can probably refactor to only use id for everything)
-            # current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
-            # current_segment_name = env.get_segment_name_by_id(current_segment_id)
+            current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
+            current_segment_name = env.get_segment_name_by_id(current_segment_id)
 
             # # Get the segment position to calculate its completion by drones position
-            # drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
-            # segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
+            drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
+            segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
+            current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
 
-            # current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
+            # If the drone has completed 80% of a segment then we consider it complete
+            if np.sum(current_segment_completion) >= 8:
+                drones_segments_completed[z][current_segment_idx] = 1
 
-            # # If the drone has completed 80% of a segment then we consider it complete
-            # if np.sum(current_segment_completion) >= 8:
-            #     drones_segments_completed[z][current_segment_idx] = 1
-
-            # fitness = np.sum(drones_segments_completed[0, :])
-
-            distance = calculate_distance((2.5, 0.0, .001), position)
-            if distance > -0.1:
-                genome.fitness += distance
-                env.close()
-                return distance
+            segment_reward = np.sum(drones_segments_completed[0, :])
 
         # Render and sync the sim if needed
         env.render()
@@ -174,10 +162,10 @@ def run_sim(
         if gui:
             sync(i, START, env.CTRL_TIMESTEP)
 
-    genome.fitness += distance
-    print('fitness', distance)
+    genome.fitness += segment_reward
+    print('fitness', genome.fitness)
 
     # Close the environment and return fitness
     env.close()
 
-    return distance
+    return genome.fitness

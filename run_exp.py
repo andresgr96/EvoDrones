@@ -3,7 +3,7 @@ from datetime import datetime
 
 import neat
 import pickle
-from gym_pybullet_drones.EvoDrones.utils.simulation import run_sim
+from gym_pybullet_drones.EvoDrones.utils.simulation_exp_one import run_sim
 
 
 def eval_genomes(genomes, config):

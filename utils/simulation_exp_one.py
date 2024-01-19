@@ -25,7 +25,7 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = False
+DEFAULT_GUI = True
 DEFAULT_RECORD_VISION = False
 DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
@@ -35,6 +35,13 @@ DEFAULT_CONTROL_FREQ_HZ = 48
 DEFAULT_DURATION_SEC = 3
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
+
+
+def calculate_distance(target, position):
+    tx, ty, tz = target
+    x, y, z = position
+
+    return -(abs(tx - x) + abs(ty - y) + abs(tz - z))
 
 
 def run_sim(
@@ -88,11 +95,6 @@ def run_sim(
     segment_completion = np.zeros((env.num_segments, 10))  # Tracks completed sections for all segments
     current_segment_completion = np.zeros(10)  # Tracks current segment completed sections
 
-    # Run the simulation
-    START = time.time()
-    genome.fitness = 0
-    segments_completed = 0
-
     # Rewards tracking
     segment_reward = 0
     sections_reward = 0
@@ -102,48 +104,62 @@ def run_sim(
     following = False
     landing = False
 
+    # Run the simulation
+    START = time.time()
+    genome.fitness = 0
+    segments_completed = 0
+
     net = neat.nn.FeedForwardNetwork.create(genome, config)
 
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 
-        # Update drones position coordinates
-        position = env._getDronePositions()[0]
-        drone_x, drone_y, drone_z = position
+        drone_positions = env._getDronePositions()
+        for z, position in enumerate(drone_positions):
 
-        # Computer vision
-        rgb_image, _, _ = env._getDroneImages(0)
-        segmented = segment_image(rgb_image)
-        mask = red_mask(rgb_image)
-        # display_drone_image(mask)
+            x, y, z = position
 
-        # Drone's state machine
-        if taking_off:
-            continue
-        elif following:
-            continue
-        elif landing:
-            continue
+            # Get to hover
+            if z < 0.2:
+                # print(z)
+                action = to_hover()
+                obs, reward, terminated, truncated, info = env.step(action)
+                break
 
-        # Get segment information for tracking, should probably be compacted
-        segment_idx = env.get_current_segment(position)
-        current_segment_idx = env.get_current_segment(position) - 2
-        current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
-        current_segment_name = env.get_segment_name_by_id(current_segment_id)
+            # Computer Vision
+            rgb_image, _, _ = env._getDroneImages(0)
+            segmented = segment_image(rgb_image)
+            mask = red_mask(rgb_image)
+            # display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
 
-        # Check the completion of the segment by the drone
-        drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
-        segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
-        current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
+            # Build and take action
+            output = net.activate((x, y, z))
+            decision = output.index(max(output))
+            action = action_decision(decision)
+            obs, reward, terminated, truncated, info = env.step(action)
 
-        # If the drone has completed 90% of a segment then we consider it complete
-        if np.sum(current_segment_completion) >= 9:
-            drones_segments_completed[0][current_segment_idx] = 1
+            # # Drone's state machine
+            # if taking_off:
+            #     continue
+            # elif following:
+            #     continue
+            # elif landing:
+            #     continue
 
-        # Build and take action
-        output = net.activate((drone_x, drone_y, drone_z))
-        decision = output.index(max(output))
-        action = action_decision(decision)
-        obs, reward, terminated, truncated, info = env.step(action)
+            # Get segment information for tracking, should probably be compacted
+            segment_idx = env.get_current_segment(position)
+            if env.get_current_segment(position) is not None:
+                current_segment_idx = env.get_current_segment(position) - 2
+            current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
+            current_segment_name = env.get_segment_name_by_id(current_segment_id)
+
+            # Check the completion of the segment by the drone
+            drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
+            segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
+            current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
+
+            # If the drone has completed 90% of a segment then we consider it complete
+            if np.sum(current_segment_completion) >= 9:
+                drones_segments_completed[0][current_segment_idx] = 1
 
         # Render and sync the sim if needed
         env.render()
@@ -151,7 +167,6 @@ def run_sim(
         if gui:
             sync(i, START, env.CTRL_TIMESTEP)
 
-    # Fitness function calculations
     segment_reward = np.sum(drones_segments_completed[0, :])
     sections_reward = np.sum(current_segment_completion)
     genome.fitness += segment_reward + sections_reward

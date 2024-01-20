@@ -25,7 +25,7 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = True
+DEFAULT_GUI = False
 DEFAULT_RECORD_VISION = False
 DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
@@ -132,14 +132,13 @@ def run_sim(
             mask = red_mask(rgb_image)
             pixel_count = detect_objects(mask)
             circle, circle_i = detect_circles(circle_image)
-            display_drone_image(circle_i)
+            # display_drone_image(circle_i)
             pixel_count.append(circle)
 
             # Build and take action
             output = net.activate(pixel_count)
             decision = output.index(max(output))
             action = action_decision(decision)
-            action = build_action_forward(num_drones)
             obs, reward, terminated, truncated, info = env.step(action)
 
             # Update drone position and steps

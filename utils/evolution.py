@@ -1,6 +1,5 @@
-import random
 import numpy as np
-from simulation import run_sim
+from gym_pybullet_drones.EvoDrones.simulators.simulation import run_sim
 
 
 # Dummy EA to prepare experiment manager

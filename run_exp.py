@@ -3,7 +3,7 @@ from datetime import datetime
 
 import neat
 import pickle
-from gym_pybullet_drones.EvoDrones.utils.simulation_exp_one import run_sim
+from gym_pybullet_drones.EvoDrones.simulators.simulation_exp_one import run_sim
 
 
 def eval_genomes(genomes, config):
@@ -25,7 +25,7 @@ def run_neat(config, results_dir):
     p.add_reporter(neat.Checkpointer(1, filename_prefix=os.path.join(experiment_dir, 'neat-checkpoint')))
 
     # Run NEAT and save the best solution to the results dir
-    winner = p.run(eval_genomes, 2)
+    winner = p.run(eval_genomes, 1000)
     with open(os.path.join(experiment_dir, "best.pickle"), "wb") as f:
         pickle.dump(winner, f)
 

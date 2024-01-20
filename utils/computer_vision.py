@@ -70,14 +70,13 @@ def detect_circles(image):
         cv2.HOUGH_GRADIENT,
         dp=0.5,
         minDist=20,
-        param1=10,
+        param1=30,
         param2=20,
-        minRadius=1,
-        maxRadius=300
+        minRadius=25,
+        maxRadius=40
     )
     if circles is not None:
-        print("Circle Detected")
-        return 1
+        # print("Circle Detected")
 
         # Convert the (x, y) coordinates and radius of the circles to integers
         circles = np.round(circles[0, :]).astype("int")
@@ -85,8 +84,8 @@ def detect_circles(image):
         # Draw the circles on the image
         for (x, y, r) in circles:
             cv2.circle(image, (x, y), r, (0, 255, 0), 4)
-
-    return 0
+        return 1, image
+    return 0, image
 
 
 def detect_objects(masked_image):

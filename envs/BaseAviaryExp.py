@@ -993,11 +993,6 @@ class BaseAviary(gym.Env):
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position,
                                                                                                        line_orientation)}
         # Segment 2
-        # line2_position = [1.1, 0.4, .001]
-        # line2_orientation = p.getQuaternionFromEuler([0, 0, 1.57])
-        # line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
-        # self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position,
-        #                                                                                                 line2_orientation)}
         line2_position = [1.5, 0.0, .001]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
         line2_id = p.loadURDF("../assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
@@ -1015,8 +1010,6 @@ class BaseAviary(gym.Env):
         circle_orientation = p.getQuaternionFromEuler([0, 0, 0])
         circle_id = p.loadURDF("../assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
         self.circle_info = {"id": circle_id, "position": circle_position}
-        # This probably needs changing since the function for coordinates is meant for rectangular lines
-        # self.segment_ids["circle"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position)}
 
     ################################################################################
     
@@ -1217,7 +1210,8 @@ class BaseAviary(gym.Env):
         return x_min, x_max, y_min, y_max
 
     # Checks if the given drone is over the given segment.
-    def is_drone_over_line(self, drone_position, line_position, line_orientation):
+    def is_drone_over_line(self, drone_position, segment_name):
+        line_position, line_orientation = p.getBasePositionAndOrientation(self.segment_ids.get(segment_name)["id"])
         drone_x, drone_y, _ = drone_position
         x_min, x_max, y_min, y_max = self.calculate_line_coordinates(line_position, line_orientation)
 
@@ -1237,19 +1231,18 @@ class BaseAviary(gym.Env):
 
         # Also checks if the drone is withing the given segment so the y coordinates are checked too
         return last_10_percent_start <= drone_x <= segment_length\
-            and self.is_drone_over_line(drone_position, line_position, line_orientation)
+            and self.is_drone_over_line(drone_position, segment_name)
 
     # Checks if the drone is within a given section of a track segment.
-    def is_within_section(self, drone_position, line_position, line_orientation, section_start, section_end,
-                          is_horizontal):
+    def is_within_section(self, drone_position, segment_name, section_start, section_end, is_horizontal):
         drone_x, drone_y, _ = drone_position
 
         if is_horizontal:
             return section_start <= drone_x <= section_end and self.is_drone_over_line(drone_position,
-                                                                                       line_position, line_orientation)
+                                                                                       segment_name)
         else:
             return section_start <= drone_y <= section_end and self.is_drone_over_line(drone_position,
-                                                                                       line_position, line_orientation)
+                                                                                       segment_name)
 
     # For all sections of 10% of the full segment, checks if the drone is there.
     def check_drone_position_in_sections(self, drone_position, line_name):
@@ -1278,10 +1271,10 @@ class BaseAviary(gym.Env):
             section_end_y = y_min + (i + 1) * section_step_y
 
             if is_horizontal:
-                results[i] = self.is_within_section(drone_position, line_position, line_orientation,
+                results[i] = self.is_within_section(drone_position, line_name,
                                                     section_start_x, section_end_x, is_horizontal)
             else:
-                results[i] = self.is_within_section(drone_position, line_position, line_orientation,
+                results[i] = self.is_within_section(drone_position, line_name,
                                                     section_start_y, section_end_y, is_horizontal)
 
         return results
@@ -1309,7 +1302,7 @@ class BaseAviary(gym.Env):
         return None
 
     # Check if the drone landed defined by being within the circle coordinates and flying below a threshold for z
-    def drone_landed(self, drone_position):
+    def drone_in_target_circle(self, drone_position):
         # Extract coordinates
         drone_x, drone_y, drone_z = drone_position
         circle_x, circle_y, _ = self.circle_info.get("position")
@@ -1318,7 +1311,15 @@ class BaseAviary(gym.Env):
         distance = np.sqrt((drone_x - circle_x)**2 + (drone_y - circle_y)**2)
 
         # Check if the drone is inside the circle AND low enough
-        return distance <= self.circle_radius and drone_z <= 0.2
+        return distance <= self.circle_radius
+
+    # Check if the drone landed defined by being within the circle coordinates and flying below a threshold for z
+    def drone_landed(self, drone_position):
+        # Extract coordinates
+        drone_x, drone_y, drone_z = drone_position
+
+        # Check if the drone is inside the circle AND low enough
+        return self.drone_in_target_circle(drone_position) and drone_z <= 0.2
 
     # Returns the distance within the given drone position and the center of the circle
     def distance_from_circle(self, drone_position):

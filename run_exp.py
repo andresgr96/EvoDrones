@@ -13,6 +13,8 @@ def eval_genomes(genomes, config):
     for i, (genome_id, genome) in enumerate(genomes):
         genome.fitness = 0
         run_sim(genome, config)
+        if i % 10 == 0:
+            print(i)
 
 def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """

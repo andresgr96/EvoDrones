@@ -7,11 +7,11 @@ reset_on_extinction   = False
 [DefaultStagnation]
 species_fitness_func = max
 max_stagnation       = 20
-species_elitism      = 2
+species_elitism      = 10
 
 [DefaultReproduction]
 elitism            = 2
-survival_threshold = 0.2
+survival_threshold = 0.5
 
 [DefaultGenome]
 # node activation options
@@ -55,7 +55,7 @@ node_delete_prob        = 0.2
 # network parameters
 num_hidden              = 4
 num_inputs              = 37
-num_outputs             = 5
+num_outputs             = 8
 
 # node response options
 response_init_mean      = 1.0

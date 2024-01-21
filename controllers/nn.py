@@ -12,3 +12,15 @@ def predict(state: np.array, individual: np.array):
     return rpms
 
 
+def build_action(action) -> np.array:
+    action = np.array(action)
+    normalized_action = action # / 1000
+
+    for i in range(len(normalized_action)):
+        if normalized_action[i] > 20000:
+            normalized_action[i] = 20000  # Clip the value to the maximum allowed RPM
+
+    return np.array([normalized_action])
+
+
+

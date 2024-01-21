@@ -1,17 +1,17 @@
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = 10
-pop_size              = 10
+fitness_threshold     = 500
+pop_size              = 100
 reset_on_extinction   = False
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation       = 20
-species_elitism      = 2
+max_stagnation       = 10
+species_elitism      = 5
 
 [DefaultReproduction]
 elitism            = 2
-survival_threshold = 0.2
+survival_threshold = 0.5
 
 [DefaultGenome]
 # node activation options
@@ -53,18 +53,18 @@ node_add_prob           = 0.2
 node_delete_prob        = 0.2
 
 # network parameters
-num_hidden              = 4
-num_inputs              = 33
-num_outputs             = 6
+num_hidden              = 3
+num_inputs              = 37
+num_outputs             = 4
 
 # node response options
-response_init_mean      = 1.0
-response_init_stdev     = 0.0
-response_max_value      = 30.0
-response_min_value      = -30.0
-response_mutate_power   = 0.0
-response_mutate_rate    = 0.0
-response_replace_rate   = 0.0
+response_init_mean      = 10500.0
+response_init_stdev     = 500.0
+response_max_value      = 20000.0
+response_min_value      = 1.0
+response_mutate_power   = 0.1
+response_mutate_rate    = 0.3
+response_replace_rate   = 0.1
 
 # connection weight options
 weight_init_mean        = 0.0

@@ -7,15 +7,15 @@ import math
 import random
 import numpy as np
 import pybullet as p
-import matplotlib.pyplot as plt
 import cv2
 import neat
 
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
-from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
-from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, \
-    action_decision
+# from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
+# from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, \
+#     action_decision
+from gym_pybullet_drones.EvoDrones.controllers.nn import build_action
 from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
     detect_objects, detect_circles
 from gym_pybullet_drones.utils.Logger import Logger
@@ -136,10 +136,9 @@ def run_sim(
             pixel_count.append(circle)
 
             # Build and take action
-            output = net.activate(pixel_count)
-            decision = output.index(max(output))
-            action = action_decision(decision)
-            obs, reward, terminated, truncated, info = env.step(action)
+            action = net.activate(pixel_count)
+            action = build_action(action)
+            _ = env.step(action)
 
             # Update drone position and steps
             position = env._getDronePositions()[0]

@@ -54,12 +54,13 @@ def segment_image(img):
 
 def detect_circles(image):
 
+    img = image.copy()
     # Ensure the image has the correct depth (8 bits per channel)
-    if image.dtype != np.uint8:
-        image = (image * 255).clip(0, 255).astype(np.uint8)
+    if img.dtype != np.uint8:
+        img = (img * 255).clip(0, 255).astype(np.uint8)
 
-    # Convert the image to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Convert the img to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Apply GaussianBlur to reduce noise and help the circle detection
     blurred = cv2.GaussianBlur(gray, (9, 9), 2)
@@ -76,16 +77,18 @@ def detect_circles(image):
         maxRadius=300
     )
     if circles is not None:
-        print("Circle Detected")
+        # print("Circle Detected")
 
         # Convert the (x, y) coordinates and radius of the circles to integers
         circles = np.round(circles[0, :]).astype("int")
 
-        # Draw the circles on the image
+        # Draw the circles on the img
         for (x, y, r) in circles:
-            cv2.circle(image, (x, y), r, (0, 255, 0), 4)
+            cv2.circle(img, (x, y), r, (0, 255, 0), 4)
+            
+        return 1, img
 
-    return image
+    return 0, img
 
 
 def detect_objects(masked_image):

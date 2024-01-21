@@ -16,19 +16,23 @@ def build_action(num_drones):
     return action
 
 
-def action_decision(action):
-    default = 10000
-    if action == 0:
-        return np.array([[default-50, default, default, default-50]]) # forward
-    elif action == 1:
-        return np.array([[default-50, default-50, default, default]]) # right
-    elif action == 2:
-        return np.array([[default, default-50, default-50, default]]) # backward
-    elif action == 3:
-        return np.array([[default, default, default-50, default-50]]) # left
-    elif action == 4:
-        return np.array([[default, default, default, default]]) # up
-    
+def action_decision(prev_action , action, speed, state):
+    if action == 1: # up
+        return prev_action + speed 
+    if action == 2: # down
+        return prev_action - speed 
+    # if state == State.Flying:
+    if action == 3: # forward
+        return np.array([[prev_action[0][0]-speed, prev_action[0][1], prev_action[0][2], prev_action[0][3]-speed]])
+    if action == 4: # backward
+        return np.array([[prev_action[0][0], prev_action[0][1]-speed, prev_action[0][2]-speed, prev_action[0][3]]]) 
+    if action == 5: # right
+        return np.array([[prev_action[0][0]-speed, prev_action[0][1]-speed, prev_action[0][2], prev_action[0][3]]])
+    if action == 6: # left
+        return np.array([[prev_action[0][0], prev_action[0][1], prev_action[0][2]-speed, prev_action[0][3]-speed]]) 
+    if action == 7: # power off
+        return np.array([[0, 0, 0, 0]])
+
     return np.array([[0, 0, 0, 0]])
 
 

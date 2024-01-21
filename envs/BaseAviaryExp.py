@@ -989,7 +989,7 @@ class BaseAviary(gym.Env):
         # Segment 1
         line_position = [0.5, 0, .001]
         line_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        line_id = p.loadURDF("../assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
+        line_id = p.loadURDF("./assets/line.urdf", line_position, line_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_1"] = {"id": line_id, "coordinates": self.calculate_line_coordinates(line_position,
                                                                                                        line_orientation)}
         # Segment 2
@@ -1000,7 +1000,7 @@ class BaseAviary(gym.Env):
         #                                                                                                 line2_orientation)}
         line2_position = [1.5, 0.0, .001]
         line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        line2_id = p.loadURDF("../assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
+        line2_id = p.loadURDF("./assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position,
                                                                                                         line2_orientation)}
         # # Segment 3
@@ -1013,7 +1013,7 @@ class BaseAviary(gym.Env):
         # Landing Circle
         circle_position = [2.5, 0.0, .001]
         circle_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        circle_id = p.loadURDF("../assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
+        circle_id = p.loadURDF("./assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
         self.circle_info = {"id": circle_id, "position": circle_position}
         # This probably needs changing since the function for coordinates is meant for rectangular lines
         # self.segment_ids["circle"] = {"id": circle_id, "coordinates": self.calculate_line_coordinates(circle_position)}

@@ -9,7 +9,8 @@ from gym_pybullet_drones.EvoDrones.utils.simulation import run_sim
 def eval_genomes(genomes, config):
     for i, (genome_id, genome) in enumerate(genomes):
         genome.fitness = 0
-        run_sim(genome, config)
+        fit = run_sim(genome, config)
+        print(i, fit)
 
 
 def run_neat(config, results_dir):
@@ -19,13 +20,29 @@ def run_neat(config, results_dir):
     experiment_dir = os.path.join(results_dir, current_time)
     os.makedirs(experiment_dir)
 
+    
+    
     # Start the population and reporters
     p = neat.Population(config)
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-19_20-59-17/neat-checkpoint38')
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-19_21-35-56/neat-checkpoint2')
+    
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-19_22-17-51/neat-checkpoint99')
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-19_22-29-15/neat-checkpoint170')
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-19_22-44-37/neat-checkpoint240')
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-19_23-05-10/neat-checkpoint301')
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-19_23-30-28/neat-checkpoint388')
+    p = neat.Checkpointer.restore_checkpoint('results/2024-01-20_00-09-43/neat-checkpoint487')
+    
+    
+    
+    
+    
     p.add_reporter(neat.StdOutReporter(True))
     p.add_reporter(neat.Checkpointer(1, filename_prefix=os.path.join(experiment_dir, 'neat-checkpoint')))
 
     # Run NEAT and save the best solution to the results dir
-    winner = p.run(eval_genomes, 2)
+    winner = p.run(eval_genomes, 100)
     with open(os.path.join(experiment_dir, "best.pickle"), "wb") as f:
         pickle.dump(winner, f)
 

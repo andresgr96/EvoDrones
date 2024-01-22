@@ -25,7 +25,7 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = False
+DEFAULT_GUI = True
 DEFAULT_RECORD_VISION = False
 DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
@@ -42,7 +42,6 @@ def calculate_distance(target, position):
     x, y, z = position
 
     return -(abs(tx - x) + abs(ty - y) + abs(tz - z))
-
 
 def run_sim(
         genome,

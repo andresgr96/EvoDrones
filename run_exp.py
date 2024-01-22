@@ -1,6 +1,10 @@
 import os
 from datetime import datetime
 
+import matplotlib.pyplot as plt
+import warnings
+import numpy as np
+
 import neat
 import pickle
 import matplotlib.pyplot as plt
@@ -54,7 +58,8 @@ def run_neat(config, results_dir):
     os.makedirs(experiment_dir)
 
     # Start the population and reporters
-    p = neat.Population(config)
+    # p = neat.Population(config)
+    p = neat.Checkpointer.restore_checkpoint('results/2024-01-22_20-29-09/neat-checkpoint4')
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)

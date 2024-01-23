@@ -15,9 +15,9 @@ from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
 from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, \
-    action_decision
+    action_decision, action_dec
 from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
-    detect_objects
+    detect_objects, detect_circles
 from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool
 
@@ -32,7 +32,7 @@ DEFAULT_USER_DEBUG_GUI = False
 DEFAULT_OBSTACLES = True
 DEFAULT_SIMULATION_FREQ_HZ = 240
 DEFAULT_CONTROL_FREQ_HZ = 48
-DEFAULT_DURATION_SEC = 3
+DEFAULT_DURATION_SEC = 0.5
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
 
@@ -42,7 +42,6 @@ def calculate_distance(target, position):
     x, y, z = position
 
     return -(abs(tx - x) + abs(ty - y) + abs(tz - z))
-
 
 def run_sim(
         genome,
@@ -95,76 +94,154 @@ def run_sim(
     segment_completion = np.zeros((env.num_segments, 10))  # Tracks completed sections for all segments
     current_segment_completion = np.zeros(10)  # Tracks current segment completed sections
 
+    # Drone state tracking
+    taking_off = True
+    following = False
+    landing = False
+    landed = False
+
+    # Takeoff state rewards tracking
+    takeoff_reward = 0
+    takeoff_penalty = 1
+
+    # Following state rewards tracking
+    following_reward = 0
+    first_pos = env._getDronePositions()[0]
+    old_dist = env.distance_from_circle(first_pos)
+
+    # Landing state rewards tracking
+    landing_reward = 0
+
     # Run the simulation
     START = time.time()
+    steps = 0
     genome.fitness = 0
     segments_completed = 0
+    last_action = np.array([[0,0,0,0]])
 
     net = neat.nn.FeedForwardNetwork.create(genome, config)
 
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 
-        # At each time step we want to :
-
         drone_positions = env._getDronePositions()
-        for z, position in enumerate(drone_positions):
+        for _ in enumerate(drone_positions):
 
-            x, y, z = position
-
-            # 0. Get to hover
-            if z < 0.2:
-                # print(z)
-                action = to_hover()
-                obs, reward, terminated, truncated, info = env.step(action)
-                break
-
-            # 1. Observe current state
-            # Display the camera feed of drone 1
+            # Computer Vision
             rgb_image, _, _ = env._getDroneImages(0)
-            segmented = segment_image(rgb_image)
+            circle_image = rgb_image
             mask = red_mask(rgb_image)
-            # display_drone_image(mask)  # Use mask here if binary mask, segmented for normal img with lines
+            pixel_count = detect_objects(mask)
+            circle, circle_i = detect_circles(circle_image)
+            # display_drone_image(circle_i)
+            pixel_count.append(circle)
 
-            # for now lets use x,y,z and distance to circle as state (input to NN)
-            # have to control actions, let limmit how long "turning" can occur for before it resets
-            # NN output will be : forward, backward, left, right, (optional : hover)
-            # 2. Pass this state to NN
-
-            output = net.activate((x, y, z))
-            decision = output.index(max(output))
-
-            action = action_decision(decision)
+            # Build and take action
+            
+            output = net.activate(pixel_count)
+            # print(output)
+            speed = output[0] * 10
+            decision = output.index(max(output[1:8]))
+            if i == 0:
+                default = 15000
+                prev = np.array([[default, default, default, default]])
+                action = action_dec(prev, decision, speed)
+                last_action = action
+            else:
+                action = action_dec(last_action, decision, speed)
+                last_action = action
             obs, reward, terminated, truncated, info = env.step(action)
 
-            segment_idx = env.get_current_segment(position)
-            current_segment_idx = env.get_current_segment(position) - 2
-            # print('id', current_segment_idx)
-            # # print(current_segment_idx, position)
+            # Update drone position and steps
+            position = env._getDronePositions()[0]
+            x, y, z = position
+            steps += 1
 
-            # # Get the segments name (can probably refactor to only use id for everything)
+            # Check if drone is moving towards the circle and update old distance for next step
+            curr_dist_to_circle = env.distance_from_circle(position)
+            moving_forward = True if old_dist - curr_dist_to_circle >= 0 else False
+            old_dist = curr_dist_to_circle
+
+            # Get segment information for tracking, should probably be compacted
+            segment_idx = env.get_current_segment(position)
+            if env.get_current_segment(position) is not None:
+                current_segment_idx = env.get_current_segment(position) - 2
             current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
             current_segment_name = env.get_segment_name_by_id(current_segment_id)
 
-            # # Get the segment position to calculate its completion by drones position
+            # Check the completion of the segment by the drone
             drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
             segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
             current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
 
-            # If the drone has completed 80% of a segment then we consider it complete
-            if np.sum(current_segment_completion) >= 8:
-                drones_segments_completed[z][current_segment_idx] = 1
+            # If the drone has completed 90% of a segment then we consider it complete
+            if np.sum(current_segment_completion) >= 9:
+                drones_segments_completed[0][current_segment_idx] = 1
 
-            segment_reward = np.sum(drones_segments_completed[0, :])
+            # -------------------------------------- Drone's state machine --------------------------------------#
+            if taking_off:
+                # print("Taking Off")
+                # Encourage going up by penalizing staying down
+                if z < 0.2:
+                    takeoff_reward -= takeoff_penalty
+                elif z >= 0.2:
+                    takeoff_reward += 20
+                    taking_off = False
+                    following = True
+            elif following:
+                # print("Following")
+                at_segments_end = np.sum(current_segment_completion) >= 8
+
+                # Encourage moving towards the circle
+                if moving_forward:
+                    following_reward += takeoff_penalty
+                else:
+                    following_reward -= takeoff_penalty
+
+                # Encourage staying within the current segments coordinates
+                if not env.is_drone_over_line(position, current_segment_name):
+                    following_reward -= takeoff_penalty
+
+                # Check if the circle has been detected
+                if (circle == 1 and at_segments_end) or at_segments_end:
+                    following = False
+                    landing = True
+            elif landing:
+                # print("Landing")
+                if not env.drone_landed(position):
+                    # Encourage flying down
+                    landing_reward -= takeoff_penalty
+
+                    # Encourage moving towards the circle
+                    if moving_forward:
+                        landing_reward += takeoff_penalty
+                    else:
+                        landing_reward -= takeoff_penalty
+
+                    # Encourage staying within the circles x and y coordinates
+                    if env.drone_in_target_circle(position):
+                        landing_reward += takeoff_penalty
+                elif env.drone_landed(position):
+                    # print("Landed")
+                    landing_reward += 50
+                    landing = True
+                    landed = False
+            # -------------------------------------- Drone's state machine END --------------------------------------#
 
         # Render and sync the sim if needed
-        env.render()
-
+        
         if gui:
+            env.render()
             sync(i, START, env.CTRL_TIMESTEP)
 
-    genome.fitness += segment_reward
-    print('fitness', genome.fitness)
+        if landed:
+            break
 
+    # Final fitness calculations
+    segment_reward = np.sum(drones_segments_completed[0, :]) * 50
+    sections_reward = np.sum(current_segment_completion) * 2
+    genome.fitness += takeoff_reward + following_reward + landing_reward\
+                      + segment_reward + sections_reward - (steps * 0.1)
+    # print('fitness', genome.fitness)
     # Close the environment and return fitness
     env.close()
 

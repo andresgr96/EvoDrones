@@ -1,6 +1,10 @@
 import os
 from datetime import datetime
 
+import matplotlib.pyplot as plt
+import warnings
+import numpy as np
+
 import neat
 import pickle
 import matplotlib.pyplot as plt
@@ -13,6 +17,8 @@ def eval_genomes(genomes, config):
     for i, (genome_id, genome) in enumerate(genomes):
         genome.fitness = 0
         run_sim(genome, config)
+        if i % 10 == 0:
+            print(i)
 
 def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
@@ -53,6 +59,7 @@ def run_neat(config, results_dir):
 
     # Start the population and reporters
     p = neat.Population(config)
+    p = neat.Checkpointer.restore_checkpoint('results/2024-01-23_18-16-14/neat-checkpoint29')
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
@@ -74,7 +81,7 @@ if __name__ == '__main__':
     config_dir = os.path.join(local_dir, "assets")
 
     # Setup NEAT configs
-    config_path = os.path.join(config_dir, 'config_rpms.txt')
+    config_path = os.path.join(config_dir, 'config.txt')
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)

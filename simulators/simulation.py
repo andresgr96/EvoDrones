@@ -25,7 +25,7 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = True
+DEFAULT_GUI = False
 DEFAULT_RECORD_VISION = False
 DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
@@ -138,6 +138,7 @@ def run_sim(
             # Build and take action
             
             output = net.activate(pixel_count)
+            # print(output)
             speed = output[0] * 10
             decision = output.index(max(output[1:8]))
             if i == 0:

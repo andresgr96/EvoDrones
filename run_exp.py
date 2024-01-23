@@ -58,8 +58,8 @@ def run_neat(config, results_dir):
     os.makedirs(experiment_dir)
 
     # Start the population and reporters
-    # p = neat.Population(config)
-    p = neat.Checkpointer.restore_checkpoint('results/2024-01-22_20-29-09/neat-checkpoint4')
+    p = neat.Population(config)
+    p = neat.Checkpointer.restore_checkpoint('results/2024-01-23_18-16-14/neat-checkpoint29')
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     config_dir = os.path.join(local_dir, "assets")
 
     # Setup NEAT configs
-    config_path = os.path.join(config_dir, 'config_rpms.txt')
+    config_path = os.path.join(config_dir, 'config.txt')
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)

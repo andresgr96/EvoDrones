@@ -3,6 +3,9 @@ from datetime import datetime
 
 import neat
 import pickle
+import matplotlib.pyplot as plt
+import warnings
+import numpy as np
 from gym_pybullet_drones.EvoDrones.simulators.simulation_exp_one_rpms import run_sim
 
 
@@ -11,7 +14,36 @@ def eval_genomes(genomes, config):
         genome.fitness = 0
         run_sim(genome, config)
 
+def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
+    """ Plots the population's average and best fitness. """
+    if plt is None:
+        warnings.warn("This display is not available due to a missing optional dependency (matplotlib)")
+        return
 
+    generation = range(len(statistics.most_fit_genomes))
+    best_fitness = [c.fitness for c in statistics.most_fit_genomes]
+    avg_fitness = np.array(statistics.get_fitness_mean())
+    stdev_fitness = np.array(statistics.get_fitness_stdev())
+
+    plt.plot(generation, avg_fitness, 'b-', label="average")
+    # plt.plot(generation, avg_fitness - stdev_fitness, 'g-.', label="-1 sd")
+    # plt.plot(generation, avg_fitness + stdev_fitness, 'g-.', label="+1 sd")
+    # plt.plot(generation, best_fitness, 'r-', label="best")
+
+    plt.title("Population's average and best fitness")
+    plt.xlabel("Generations")
+    plt.ylabel("Fitness")
+    plt.grid()
+    plt.legend(loc="best")
+    if ylog:
+        plt.gca().set_yscale('symlog')
+
+    plt.savefig(filename)
+    if view:
+        plt.show()
+
+    plt.close()
+    
 def run_neat(config, results_dir):
 
     # Create a folder with the current date to have better organized results
@@ -22,12 +54,16 @@ def run_neat(config, results_dir):
     # Start the population and reporters
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1, filename_prefix=os.path.join(experiment_dir, 'neat-checkpoint')))
 
     # Run NEAT and save the best solution to the results dir
-    winner = p.run(eval_genomes, 1000)
+    winner = p.run(eval_genomes, 10)
     with open(os.path.join(experiment_dir, "best.pickle"), "wb") as f:
         pickle.dump(winner, f)
+        
+    plot_stats(stats, ylog=False, view=True)
 
 
 if __name__ == '__main__':

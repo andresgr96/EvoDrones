@@ -18,15 +18,18 @@ import numpy as np
 import pybullet as p
 import matplotlib.pyplot as plt
 import cv2
+import pickle
+import neat
 
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
-from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward
+# from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward
 from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image,\
     detect_objects, detect_circles
 from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool
+from gym_pybullet_drones.EvoDrones.controllers.nn import build_action
 
 # Sim constants, do not change unless you really know what you are doing
 DEFAULT_DRONES = DroneModel("cf2x")
@@ -64,7 +67,7 @@ def run(
     H_STEP = .05
     R = .3
     INIT_XYZS = np.array(
-        [[R * np.cos((i / 6) * 2 * np.pi + np.pi / 2), R * np.sin((i / 6) * 2 * np.pi + np.pi / 2) - R, 1 +H + i * H_STEP]
+        [[R * np.cos((i / 6) * 2 * np.pi + np.pi / 2), R * np.sin((i / 6) * 2 * np.pi + np.pi / 2) - R, H + i * H_STEP]
          for i in range(num_drones)])
     INIT_RPYS = np.array([[0, 0, i * (np.pi / 2) / num_drones] for i in range(num_drones)])
 
@@ -115,25 +118,40 @@ def run(
     START = time.time()
     segments_completed = 0
 
+    # Load the saved genome
+    file_path = os.path.join(os.getcwd(), "results/2024-01-22_16-00-17/best.pickle")
+    with open(file_path, "rb") as f:
+        winner = pickle.load(f)
+
+    # Load NEAT configuration
+    config_path = "assets/config_rpms.txt"  # Replace with the actual path to your NEAT config file
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+
+    # Create a FeedForwardNetwork using the loaded genome and configuration
+    net = neat.nn.FeedForwardNetwork.create(winner, config)
+
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 
-        # Build the action for each drone and take a step, action is random for now
-        action = build_action_forward(num_drones)
-        down = np.array([[0, 0, 0, 0]])
-        slow_down = np.array([[14100, 14100, 14100, 14100]])
-        obs, reward, terminated, truncated, info = env.step(slow_down)
-
-        # Display the camera feed of drone 1
+        # Computer Vision
         rgb_image, _, _ = env._getDroneImages(0)
-        # segmented = segment_image(rgb_image)
-        # circle_detect = detect_circles(rgb_image)
+        circle_image = rgb_image
         mask = red_mask(rgb_image)
-        # print(detect_objects(mask))
-        display_drone_image(rgb_image)
+        pixel_count = detect_objects(mask)
+        circle, circle_i = detect_circles(circle_image)
+        # display_drone_image(circle_i)
+        pixel_count.append(circle)
+
+        # Build and take action
+        action = net.activate(pixel_count)
+        print(action)
+        action = build_action(action)
+        _ = env.step(action)
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()
         x, y, z = env._getDronePositions()[0]
+        print(x, y, z)
         for z, position in enumerate(drone_positions):
             # over_line = env.is_drone_over_line(position, line_position)
             # over_last_10 = env.is_within_last_10_percent(position, "segment_1")
@@ -141,18 +159,6 @@ def run(
             current_segment_completion[np.where(drone_segment_position == 1)] = 1
             # print(env.is_drone_inside_circle(position))
             # print(env.distance_from_circle(position))
-
-            state_vector = env._getDroneStateVector(z)
-
-            # Unpack values
-            pos = state_vector[:3]
-            quat = state_vector[3:7]
-            rpy = state_vector[7:10]
-            vel = state_vector[10:13]
-            ang_vel = state_vector[13:16]
-            last_clipped_action = state_vector[16:]
-
-            print(vel)
 
             if np.sum(current_segment_completion) >= 8:
                 drones_segments_completed[z][current_segment_idx] = 1

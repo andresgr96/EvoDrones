@@ -136,10 +136,12 @@ def run_sim(
             pixel_count.append(circle)
 
             # Build and take action
-            action = net.activate(pixel_count)
-            action = build_action(action)
+            down = np.array([[0, 0, 0, 0]])
+            slow_down = np.array([[14100, 14100, 14100, 14100]])
+            # action = net.activate(pixel_count)
+            # action = build_action(action)
             # print(action)
-            _ = env.step(action)
+            _ = env.step(slow_down)
             steps += 1
 
             # Update drone state information
@@ -228,8 +230,8 @@ def run_sim(
         if gui:
             sync(i, START, env.CTRL_TIMESTEP)
 
-        if landed:
-            break
+        # if landed:
+        #     break
 
     # Final fitness calculations
     segment_reward = np.sum(drones_segments_completed[0, :]) * 50

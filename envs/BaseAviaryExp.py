@@ -71,6 +71,7 @@ class BaseAviary(gym.Env):
 
         """
         #### Constants #############################################
+        self.crash_thresh = 3
         self.segment_ids = {}  # Dictionary to store object IDs
         self.circle_info = {}
         self.num_segments = 3  # Store number of segments, would be good to auto this when we have the track builder
@@ -1321,6 +1322,14 @@ class BaseAviary(gym.Env):
 
         # Check if the drone is inside the circle AND low enough
         return self.drone_in_target_circle(drone_position) and drone_z <= 0.15 and z_vel <= 0.8
+
+    # Checks if the angular velocity around the pitch and yaw angles are below a threshold
+    def is_stable(self, ang_velocity):
+        # Extract coordinates
+        x_vel, y_vel, z_vel = ang_velocity
+
+        # Check if the drone is inside the circle AND low enough
+        return (self.crash_thresh >= x_vel >= -self.crash_thresh) and (self.crash_thresh >= y_vel >= -self.crash_thresh)
 
     # Returns the distance within the given drone position and the center of the circle
     def distance_from_circle(self, drone_position):

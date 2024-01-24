@@ -14,6 +14,7 @@ def eval_genomes(genomes, config):
         genome.fitness = 0
         run_sim(genome, config)
 
+
 def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
     """ Plots the population's average and best fitness. """
     if plt is None:
@@ -43,6 +44,7 @@ def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
         plt.show()
 
     plt.close()
+
 
 def run_neat(config, results_dir):
 

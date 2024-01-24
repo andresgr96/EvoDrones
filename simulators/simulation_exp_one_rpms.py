@@ -192,6 +192,8 @@ def run_sim(
                     following_reward += takeoff_penalty
                 else:
                     following_reward -= takeoff_penalty
+                if not env.is_stable(ang_vel):
+                    following_reward -= takeoff_penalty
 
                 # Encourage staying within the current segments coordinates
                 if not env.is_drone_over_line(position, current_segment_name):

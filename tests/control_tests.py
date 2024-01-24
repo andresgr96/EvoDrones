@@ -114,6 +114,7 @@ def run(
     # Run the simulation
     START = time.time()
     segments_completed = 0
+    crashed = False
 
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 
@@ -121,7 +122,12 @@ def run(
         action = build_action_forward(num_drones)
         down = np.array([[0, 0, 0, 0]])
         slow_down = np.array([[14100, 14100, 14100, 14100]])
-        obs, reward, terminated, truncated, info = env.step(slow_down)
+        pitch_back = np.array([[14100, 13900, 13900, 14100]])
+        pitch_forward = np.array([[13900, 14100, 14100, 13900]])
+        roll_right = np.array([[13900, 13900, 14100, 14100]])
+        roll_left = np.array([[14100, 14100, 13900, 13900]])
+        if not crashed:
+            obs, reward, terminated, truncated, info = env.step(pitch_forward)
 
         # Display the camera feed of drone 1
         rgb_image, _, _ = env._getDroneImages(0)
@@ -130,6 +136,7 @@ def run(
         mask = red_mask(rgb_image)
         # print(detect_objects(mask))
         display_drone_image(rgb_image)
+
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()
@@ -151,8 +158,12 @@ def run(
             vel = state_vector[10:13]
             ang_vel = state_vector[13:16]
             last_clipped_action = state_vector[16:]
+            # print(ang_vel[1])
 
-            print(vel)
+            print(f"Is Drone Stable: {env.is_stable(ang_vel)}")
+            if ang_vel[1] >= 3:
+                print(f"Crashing at: {ang_vel[1]}")
+                crashed = True
 
             if np.sum(current_segment_completion) >= 8:
                 drones_segments_completed[z][current_segment_idx] = 1

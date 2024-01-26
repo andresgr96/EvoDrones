@@ -9,30 +9,28 @@ import numpy as np
 import pybullet as p
 import cv2
 import neat
-
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
-# from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
-# from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, \
-#     action_decision
 from gym_pybullet_drones.EvoDrones.controllers.nn import build_action
 from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
     detect_objects, detect_circles
-from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool
+# from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
+# from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, \
+#     action_decision
 
 # Sim constants, do not change unless you really know what you are doing
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = True
+DEFAULT_GUI = False
 DEFAULT_RECORD_VISION = False
 DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
 DEFAULT_OBSTACLES = True
 DEFAULT_SIMULATION_FREQ_HZ = 240
 DEFAULT_CONTROL_FREQ_HZ = 48
-DEFAULT_DURATION_SEC = 3
+DEFAULT_DURATION_SEC = 3.14
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
 
@@ -103,24 +101,36 @@ def run_sim(
 
     # Takeoff state rewards tracking
     takeoff_reward = 0
+    takeoff_reward_value = 250
     takeoff_penalty = 1
 
     # Following state rewards tracking
     following_reward = 0
-    first_pos = env._getDronePositions()[0]
-    old_dist = env.distance_from_circle(first_pos)
+    out_of_track_penalty = 1
 
     # Landing state rewards tracking
     landing_reward = 0
+    landing_reward_value = 500
+    high_z_penalty = 1
+    within_circle_reward = 1
 
-    # Run the simulation
-    START = time.time()
+    # General reward values
+    segment_completed_value = 250
+    section_reward_value = 20
+    runtime_penalty = 1
+    moving_forwards_value = 1.5
+    moving_backwards_pen = 1
+    stability_penalty = 1
+
+    # Final settings
     steps = 0
     genome.fitness = 0
-    segments_completed = 0
-
+    first_pos = env._getDronePositions()[0]
+    old_dist = env.distance_from_circle(first_pos)
     net = neat.nn.FeedForwardNetwork.create(genome, config)
+    START = time.time()
 
+    # Run the simulation
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
 
         drone_positions = env._getDronePositions()
@@ -180,7 +190,7 @@ def run_sim(
                 if z < 0.2:
                     takeoff_reward -= takeoff_penalty
                 elif z >= 0.2:
-                    takeoff_reward += 20
+                    takeoff_reward += takeoff_reward_value
                     taking_off = False
                     following = True
             elif following:
@@ -189,17 +199,19 @@ def run_sim(
 
                 # Encourage moving towards the circle
                 if moving_forward:
-                    following_reward += takeoff_penalty
+                    following_reward += moving_forwards_value
                 else:
-                    following_reward -= takeoff_penalty
+                    following_reward -= moving_backwards_pen
+
+                # Encourage stable flight
                 if not env.is_stable(ang_vel):
-                    following_reward -= takeoff_penalty
+                    following_reward -= stability_penalty
 
                 # Encourage staying within the current segments coordinates
                 if not env.is_drone_over_line(position, current_segment_name):
-                    following_reward -= takeoff_penalty
+                    following_reward -= out_of_track_penalty
 
-                # Check if the circle has been detected
+                # Check if the circle has been detected (needs finetuning for > 1 segments)
                 if (circle == 1 and at_segments_end) or at_segments_end:
                     following = False
                     landing = True
@@ -207,20 +219,20 @@ def run_sim(
                 # print("Landing")
                 if not env.drone_landed(position, vel):
                     # Encourage flying down
-                    landing_reward -= takeoff_penalty
+                    landing_reward -= high_z_penalty
 
                     # Encourage moving towards the circle
                     if moving_forward:
-                        landing_reward += takeoff_penalty
+                        landing_reward += moving_forwards_value
                     else:
-                        landing_reward -= takeoff_penalty
+                        landing_reward -= moving_backwards_pen
 
                     # Encourage staying within the circles x and y coordinates
                     if env.drone_in_target_circle(position):
-                        landing_reward += takeoff_penalty
+                        landing_reward += within_circle_reward
                 elif env.drone_landed(position, vel):
                     # print("Landed")
-                    landing_reward += 50
+                    landing_reward += landing_reward_value
                     landing = False
                     landed = True
             # -------------------------------------- Drone's state machine END --------------------------------------#
@@ -230,15 +242,19 @@ def run_sim(
         if gui:
             sync(i, START, env.CTRL_TIMESTEP)
 
+        # Stop the sim if the drone landed
         if landed:
+            env.close()
             break
 
     # Final fitness calculations
-    segment_reward = np.sum(drones_segments_completed[0, :]) * 50
-    sections_reward = np.sum(current_segment_completion) * 2
+    segment_reward = np.sum(drones_segments_completed[0, :]) * segment_completed_value
+    sections_reward = np.sum(current_segment_completion) * section_reward_value
     genome.fitness += takeoff_reward + following_reward + landing_reward\
-                      + segment_reward + sections_reward - (steps * 0.1)
-    print('fitness', genome.fitness)
+                      + segment_reward + sections_reward - (steps * runtime_penalty)
+    print('Fitness', genome.fitness)
+    print('Steps', steps)
+
     # Close the environment and return fitness
     env.close()
 

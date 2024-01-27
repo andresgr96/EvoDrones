@@ -119,12 +119,12 @@ def run(
     segments_completed = 0
 
     # Load the saved genome
-    file_path = os.path.join(os.getcwd(), "results/2024-01-22_16-00-17/best.pickle")
+    file_path = os.path.join(os.getcwd(), "../results/V1/best.pickle")
     with open(file_path, "rb") as f:
         winner = pickle.load(f)
 
     # Load NEAT configuration
-    config_path = "assets/config_rpms.txt"  # Replace with the actual path to your NEAT config file
+    config_path = "../assets/config_rpms.txt"
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
@@ -148,9 +148,20 @@ def run(
         action = build_action(action)
         _ = env.step(action)
 
+        # Update drone state information
+        state_vector = env._getDroneStateVector(0)
+        position = state_vector[:3]
+        quat = state_vector[3:7]
+        rpy = state_vector[7:10]
+        vel = state_vector[10:13]
+        ang_vel = state_vector[13:16]
+        last_clipped_action = state_vector[16:]
+        x, y, z = position
+
+        print(env.drone_landed(position, vel))
+
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()
-        x, y, z = env._getDronePositions()[0]
         print(x, y, z)
         for z, position in enumerate(drone_positions):
             # over_line = env.is_drone_over_line(position, line_position)

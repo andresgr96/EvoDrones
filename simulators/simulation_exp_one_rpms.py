@@ -147,39 +147,38 @@ def run_sim(
 
             # Build and take action
             action = net.activate(pixel_count)
-            action = build_action(action)
             # print(action)
+            action = build_action(action)
             _ = env.step(action)
             steps += 1
 
             # Update drone state information
             state_vector = env._getDroneStateVector(drone_id)
             position = state_vector[:3]
-            quat = state_vector[3:7]
-            rpy = state_vector[7:10]
             vel = state_vector[10:13]
             ang_vel = state_vector[13:16]
-            last_clipped_action = state_vector[16:]
+            curr_dist_to_circle = env.distance_from_circle(position)
             x, y, z = position
 
-            # Check if drone is moving towards the circle and update old distance for next step
-            curr_dist_to_circle = env.distance_from_circle(position)
-            moving_forward = True if old_dist - curr_dist_to_circle > 0 else False
-            old_dist = curr_dist_to_circle
-
             # Get segment information for tracking, should probably be compacted
-            segment_idx = env.get_current_segment(position)
             if env.get_current_segment(position) is not None:
                 current_segment_idx = env.get_current_segment(position) - 2
             current_segment_id = current_segment_idx + 2  # For some reason the dictionary starts at id 2
             current_segment_name = env.get_segment_name_by_id(current_segment_id)
 
+            # Update fitness function conditionals
+            is_stable = True if env.is_stable(ang_vel) else False
+            within_track = True if env.is_drone_over_line(position, current_segment_name) else False
+            in_target_circle = True if env.drone_in_target_circle(position) else False
+            drone_landed = True if env.drone_landed(position, vel) else False
+            moving_forward = True if old_dist - curr_dist_to_circle > 0 else False
+            old_dist = curr_dist_to_circle
+
             # Check the completion of the segment by the drone
             drone_segment_position = env.check_drone_position_in_sections(position, current_segment_name)
-            segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
-            current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
-
-            # If the drone has completed 90% of a segment then we consider it complete
+            if is_stable:     # Do not count sections completed by flying in a way that leads to crashes
+                segment_completion[current_segment_idx][drone_segment_position == 1] = 1  # All segments
+                current_segment_completion[np.where(drone_segment_position == 1)] = 1  # Current Segment
             if np.sum(current_segment_completion) >= 9:
                 drones_segments_completed[0][current_segment_idx] = 1
 
@@ -197,27 +196,31 @@ def run_sim(
                 # print("Following")
                 at_segments_end = np.sum(current_segment_completion) >= 8
 
-                # Encourage moving towards the circle
-                if moving_forward:
+                # Encourage moving towards the circle in a stable matter
+                if moving_forward and is_stable:
                     following_reward += moving_forwards_value
                 else:
                     following_reward -= moving_backwards_pen
 
                 # Encourage stable flight
-                if not env.is_stable(ang_vel):
+                if not is_stable:
                     following_reward -= stability_penalty
 
                 # Encourage staying within the current segments coordinates
-                if not env.is_drone_over_line(position, current_segment_name):
+                if not within_track:
                     following_reward -= out_of_track_penalty
 
-                # Check if the circle has been detected (needs finetuning for > 1 segments)
+                # Penalize flying too high
+                if z >= 1:
+                    following_reward -= high_z_penalty
+
+                # Check if the circle has been detected (needs fine-tuning for > 1 segments)
                 if (circle == 1 and at_segments_end) or at_segments_end:
                     following = False
                     landing = True
             elif landing:
                 # print("Landing")
-                if not env.drone_landed(position, vel):
+                if not drone_landed:
                     # Encourage flying down
                     landing_reward -= high_z_penalty
 
@@ -228,9 +231,9 @@ def run_sim(
                         landing_reward -= moving_backwards_pen
 
                     # Encourage staying within the circles x and y coordinates
-                    if env.drone_in_target_circle(position):
+                    if in_target_circle:
                         landing_reward += within_circle_reward
-                elif env.drone_landed(position, vel):
+                elif drone_landed:
                     # print("Landed")
                     landing_reward += landing_reward_value
                     landing = False
@@ -244,7 +247,7 @@ def run_sim(
 
         # Stop the sim if the drone landed
         if landed:
-            env.close()
+            # env.close()
             break
 
     # Final fitness calculations

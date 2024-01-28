@@ -119,7 +119,7 @@ def run(
     segments_completed = 0
 
     # Load the saved genome
-    file_path = os.path.join(os.getcwd(), "../results/V1/best.pickle")
+    file_path = os.path.join(os.getcwd(), "../results/V2/best.pickle")
     with open(file_path, "rb") as f:
         winner = pickle.load(f)
 

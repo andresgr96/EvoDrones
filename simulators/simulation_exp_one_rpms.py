@@ -117,10 +117,12 @@ def run_sim(
     # General reward values
     segment_completed_value = 250
     section_reward_value = 20
-    runtime_penalty = 1
     moving_forwards_value = 1.5
+    unfeasible_action_penalty = 1
     moving_backwards_pen = 1
     stability_penalty = 1
+    runtime_penalty = 1
+
 
     # Final settings
     steps = 0
@@ -147,6 +149,9 @@ def run_sim(
 
             # Build and take action
             action = net.activate(pixel_count)
+            if np.any(np.array(action) > 21000):  # Penalize unfeasible actions
+                # print(f"Penalize action: {action}")
+                genome.fitness -= unfeasible_action_penalty
             # print(action)
             action = build_action(action)
             _ = env.step(action)
@@ -167,7 +172,7 @@ def run_sim(
             current_segment_name = env.get_segment_name_by_id(current_segment_id)
 
             # Update fitness function conditionals
-            is_stable = True if env.is_stable(ang_vel) else False
+            is_stable = True if env.is_stable(ang_vel, vel) else False
             within_track = True if env.is_drone_over_line(position, current_segment_name) else False
             in_target_circle = True if env.drone_in_target_circle(position) else False
             drone_landed = True if env.drone_landed(position, vel) else False

@@ -76,4 +76,4 @@ weight_mutate_rate      = 0.5
 weight_replace_rate     = 0.1
 
 [DefaultSpeciesSet]
-compatibility_threshold = 8.0
+compatibility_threshold = 3.5

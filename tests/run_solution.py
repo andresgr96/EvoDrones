@@ -119,7 +119,7 @@ def run(
     segments_completed = 0
 
     # Load the saved genome
-    file_path = os.path.join(os.getcwd(), "../results/V2/best.pickle")
+    file_path = os.path.join(os.getcwd(), "../results/V3/best.pickle")
     with open(file_path, "rb") as f:
         winner = pickle.load(f)
 
@@ -144,7 +144,7 @@ def run(
 
         # Build and take action
         action = net.activate(pixel_count)
-        print(action)
+        # print(action)
         action = build_action(action)
         _ = env.step(action)
 
@@ -158,12 +158,13 @@ def run(
         last_clipped_action = state_vector[16:]
         x, y, z = position
 
-        print(env.drone_landed(position, vel))
+        # print(env.drone_landed(position, vel))
 
         # Calculate if the drones are over a segment, currently only checks for the same segment.
         drone_positions = env._getDronePositions()
         print(x, y, z)
-        for z, position in enumerate(drone_positions):
+
+        for drone_id, position in enumerate(drone_positions):
             # over_line = env.is_drone_over_line(position, line_position)
             # over_last_10 = env.is_within_last_10_percent(position, "segment_1")
             drone_segment_position = env.check_drone_position_in_sections(position, "segment_1")
@@ -172,7 +173,7 @@ def run(
             # print(env.distance_from_circle(position))
 
             if np.sum(current_segment_completion) >= 8:
-                drones_segments_completed[z][current_segment_idx] = 1
+                drones_segments_completed[drone_id][current_segment_idx] = 1
 
 
             # Print Line and Drone Position to test functionality

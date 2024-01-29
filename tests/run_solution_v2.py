@@ -1,5 +1,6 @@
 import os
 import time
+import pickle
 import argparse
 from datetime import datetime
 import pdb
@@ -23,7 +24,7 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
-DEFAULT_GUI = False
+DEFAULT_GUI = True
 DEFAULT_RECORD_VISION = False
 DEFAULT_PLOT = False
 DEFAULT_USER_DEBUG_GUI = False
@@ -259,3 +260,17 @@ def run_sim(
     env.close()
 
     return genome.fitness
+
+
+if __name__ == "__main__":
+    # Load NEAT configuration
+    config_path = "../assets/config_rpms.txt"
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                             neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+
+    # Load the saved genome
+    file_path = os.path.join(os.getcwd(), "../results/V3/best.pickle")
+    with open(file_path, "rb") as f:
+        winner = pickle.load(f)
+
+    run_sim(winner, config)

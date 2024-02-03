@@ -1,12 +1,12 @@
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 500
-pop_size              = 20
+pop_size              = 40
 reset_on_extinction   = False
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation       = 20
+max_stagnation       = 10
 species_elitism      = 2
 
 [DefaultReproduction]

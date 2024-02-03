@@ -32,16 +32,9 @@ DEFAULT_USER_DEBUG_GUI = False
 DEFAULT_OBSTACLES = True
 DEFAULT_SIMULATION_FREQ_HZ = 240
 DEFAULT_CONTROL_FREQ_HZ = 48
-DEFAULT_DURATION_SEC = 0.5
+DEFAULT_DURATION_SEC = 3
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
-
-
-def calculate_distance(target, position):
-    tx, ty, tz = target
-    x, y, z = position
-
-    return -(abs(tx - x) + abs(ty - y) + abs(tz - z))
 
 def run_sim(
         genome,
@@ -102,7 +95,9 @@ def run_sim(
 
     # Takeoff state rewards tracking
     takeoff_reward = 0
-    takeoff_penalty = 1
+    takeoff_penalty = 5
+    stable_penalty = 0
+    speed_penalty = 0
 
     # Following state rewards tracking
     following_reward = 0
@@ -150,6 +145,19 @@ def run_sim(
                 action = action_dec(last_action, decision, speed)
                 last_action = action
             obs, reward, terminated, truncated, info = env.step(action)
+            # print('---')
+            pos = obs[0][:3]
+            quat = obs[0][3:7]
+            rpy = obs[0][7:10]
+            vel = obs[0][10:13]
+            ang_v = obs[0][13:16]
+            last_clip_act = obs[0][16:19]
+            # print('pos', pos)
+            # print('quat', quat)
+            # print('rpy', rpy)
+            # print('vel', vel)
+            # print('ang_v', ang_v)
+            # print('last_clip_act', last_clip_act)
 
             # Update drone position and steps
             position = env._getDronePositions()[0]
@@ -187,6 +195,11 @@ def run_sim(
                     takeoff_reward += 20
                     taking_off = False
                     following = True
+                    
+                if z < 0.07:
+                    env.close()
+                    genome.fitness -= 300
+                    return genome.fitness
             elif following:
                 # print("Following")
                 at_segments_end = np.sum(current_segment_completion) >= 8
@@ -200,11 +213,22 @@ def run_sim(
                 # Encourage staying within the current segments coordinates
                 if not env.is_drone_over_line(position, current_segment_name):
                     following_reward -= takeoff_penalty
+                    
+                # Encourage stability
+                stable_penalty -= (abs(sum(ang_v)) + 4)
+                
+                if not all(abs(element) < 0.8 for element in vel):
+                    speed_penalty -= 4
+                    
 
                 # Check if the circle has been detected
                 if (circle == 1 and at_segments_end) or at_segments_end:
                     following = False
                     landing = True
+                elif z < 0.07:
+                    env.close()
+                    genome.fitness -= 300
+                    return genome.fitness
             elif landing:
                 # print("Landing")
                 if not env.drone_landed(position):
@@ -226,9 +250,9 @@ def run_sim(
                     landing = True
                     landed = False
             # -------------------------------------- Drone's state machine END --------------------------------------#
-
-        # Render and sync the sim if needed
         
+        # print(i, z)
+        # Render and sync the sim if needed
         if gui:
             env.render()
             sync(i, START, env.CTRL_TIMESTEP)
@@ -240,7 +264,7 @@ def run_sim(
     segment_reward = np.sum(drones_segments_completed[0, :]) * 50
     sections_reward = np.sum(current_segment_completion) * 2
     genome.fitness += takeoff_reward + following_reward + landing_reward\
-                      + segment_reward + sections_reward - (steps * 0.1)
+                      + segment_reward + sections_reward + stable_penalty + speed_penalty - (steps * 0.1)
     # print('fitness', genome.fitness)
     # Close the environment and return fitness
     env.close()

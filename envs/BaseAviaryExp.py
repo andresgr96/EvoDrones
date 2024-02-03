@@ -568,6 +568,13 @@ class BaseAviary(gym.Env):
         """
         state = np.hstack([self.pos[nth_drone, :], self.quat[nth_drone, :], self.rpy[nth_drone, :],
                            self.vel[nth_drone, :], self.ang_v[nth_drone, :], self.last_clipped_action[nth_drone, :]])
+        # print(self.pos[nth_drone, :])
+        # print(self.quat[nth_drone, :])
+        # print(self.rpy[nth_drone, :])
+        # print(self.vel[nth_drone, :])
+        # print(self.ang_v[nth_drone, :])
+        # print(self.last_clipped_action[nth_drone, :])
+        # print(self.ang_v[nth_drone, :])
         return state.reshape(20,)
 
     ################################################################################
@@ -998,20 +1005,27 @@ class BaseAviary(gym.Env):
         # line2_id = p.loadURDF("assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
         # self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position,
         #                                                                                                 line2_orientation)}
-        line2_position = [1.5, 0.0, .001]
-        line2_orientation = p.getQuaternionFromEuler([0, 0, 0])
+        line2_position = [1, 0.4, .001]
+        line2_orientation = p.getQuaternionFromEuler([0, 0, 1.5])
         line2_id = p.loadURDF("./assets/line.urdf", line2_position, line2_orientation, physicsClientId=self.CLIENT)
         self.segment_ids["segment_2"] = {"id": line2_id, "coordinates": self.calculate_line_coordinates(line2_position,
                                                                                                         line2_orientation)}
-        # # Segment 3
-        # line3_position = [1.7, 0.8, .001]
-        # line3_orientation = p.getQuaternionFromEuler([0, 0, 0])
-        # line3_id = p.loadURDF("assets/line.urdf", line3_position, line3_orientation, physicsClientId=self.CLIENT)
-        # self.segment_ids["segment_3"] = {"id": line3_id, "coordinates": self.calculate_line_coordinates(line3_position,
-        #                                                                                                 line3_orientation)}
+        # Segment 3
+        line3_position = [1.45, 1, .001]
+        line3_orientation = p.getQuaternionFromEuler([0, 0, 0])
+        line3_id = p.loadURDF("assets/line.urdf", line3_position, line3_orientation, physicsClientId=self.CLIENT)
+        self.segment_ids["segment_3"] = {"id": line3_id, "coordinates": self.calculate_line_coordinates(line3_position,
+                                                                                                        line3_orientation)}
+        
+        # Segment 4
+        # line4_position = [1.5, 0.5, .001]
+        # line4_orientation = p.getQuaternionFromEuler([0, 0, 0])
+        # line4_id = p.loadURDF("assets/line.urdf", line4_position, line4_orientation, physicsClientId=self.CLIENT)
+        # self.segment_ids["segment_4"] = {"id": line4_id, "coordinates": self.calculate_line_coordinates(line4_position,
+        #                                                                                                 line4_orientation)}
 
         # Landing Circle
-        circle_position = [2.5, 0.0, .001]
+        circle_position = [2.25, 1.0, .001]
         circle_orientation = p.getQuaternionFromEuler([0, 0, 0])
         circle_id = p.loadURDF("./assets/circle.urdf", circle_position, circle_orientation, physicsClientId=self.CLIENT)
         self.circle_info = {"id": circle_id, "position": circle_position}

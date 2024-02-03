@@ -10,7 +10,7 @@ import pickle
 import matplotlib.pyplot as plt
 import warnings
 import numpy as np
-from gym_pybullet_drones.EvoDrones.simulators.simulation_exp_one_rpms import run_sim
+from gym_pybullet_drones.EvoDrones.simulators.simulation import run_sim
 
 
 def eval_genomes(genomes, config):
@@ -59,14 +59,14 @@ def run_neat(config, results_dir):
 
     # Start the population and reporters
     p = neat.Population(config)
-    p = neat.Checkpointer.restore_checkpoint('results/2024-01-23_18-16-14/neat-checkpoint29')
+    # p = neat.Checkpointer.restore_checkpoint('results/2024-01-25_17-59-43/neat-checkpoint19')
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1, filename_prefix=os.path.join(experiment_dir, 'neat-checkpoint')))
 
     # Run NEAT and save the best solution to the results dir
-    winner = p.run(eval_genomes, 10)
+    winner = p.run(eval_genomes, 40)
     with open(os.path.join(experiment_dir, "best.pickle"), "wb") as f:
         pickle.dump(winner, f)
         

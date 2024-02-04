@@ -20,6 +20,63 @@ from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_im
     detect_objects, detect_circles
 from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool
+import wandb
+
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="EvoDrones",
+    
+    # track hyperparameters and run metadata
+    config={
+    "fitness_criterion"     : max,
+    "fitness_threshold"     : 500,
+    "pop_size"              : 10,
+    "reset_on_extinction"   : False,
+    "species_fitness_func" : max,
+    "max_stagnation"       : 3,
+    "species_elitism"      : 1,
+    "elitism"            : 1,
+    "survival_threshold" : 0.2,
+    "activation_mutate_rate"  : 1.0,
+    "aggregation_default"     : sum,
+    "aggregation_mutate_rate" : 0.0,
+    "aggregation_options"     : sum,
+    "bias_init_mean"          : 3.0,
+    "bias_init_stdev"         : 1.0,
+    "bias_max_value"          : 30.0,
+    "bias_min_value"          : -30.0,
+    "bias_mutate_power"       : 0.5,
+    "bias_mutate_rate"        : 0.7,
+    "bias_replace_rate"       : 0.1,
+    "compatibility_disjoint_coefficient" : 1.0,
+    "compatibility_weight_coefficient"   : 0.5,
+    "conn_add_prob"           : 0.5,
+    "conn_delete_prob"        : 0.5,
+    "enabled_default"         : True,
+    "enabled_mutate_rate"     : 0.01,
+    "feed_forward"            : True,
+    "node_add_prob"           : 0.2,
+    "node_delete_prob"        : 0.2,
+    "num_hidden"              : 4,
+    "num_inputs"              : 37,
+    "num_outputs"             : 5,
+    "response_init_mean"      : 1.0,
+    "response_init_stdev"     : 0.0,
+    "response_max_value"      : 30.0,
+    "response_min_value"      : -30.0,
+    "response_mutate_power"   : 0.0,
+    "response_mutate_rate"    : 0.0,
+    "response_replace_rate"   : 0.0,
+    "weight_init_mean"        : 0.0,
+    "weight_init_stdev"       : 1.0,
+    "weight_max_value"        : 30,
+    "weight_min_value"        : -30,
+    "weight_mutate_power"     : 0.5,
+    "weight_mutate_rate"      : 0.8,
+    "weight_replace_rate"     : 0.1,
+    "compatibility_threshold" : 3.0
+    }
+)
 
 # Sim constants, do not change unless you really know what you are doing
 DEFAULT_DRONES = DroneModel("cf2x")
@@ -267,6 +324,7 @@ def run_sim(
                       + segment_reward + sections_reward + stable_penalty + speed_penalty - (steps * 0.1)
     # print('fitness', genome.fitness)
     # Close the environment and return fitness
+    wandb.log({'fitness': genome.fitness})
     env.close()
 
     return genome.fitness

@@ -1,0 +1,164 @@
+wandb_version: 1
+
+fitness_criterion:
+  desc: null
+  value: builtins.max
+fitness_threshold:
+  desc: null
+  value: 500
+pop_size:
+  desc: null
+  value: 10
+reset_on_extinction:
+  desc: null
+  value: false
+species_fitness_func:
+  desc: null
+  value: builtins.max
+max_stagnation:
+  desc: null
+  value: 3
+species_elitism:
+  desc: null
+  value: 1
+elitism:
+  desc: null
+  value: 1
+survival_threshold:
+  desc: null
+  value: 0.2
+activation_mutate_rate:
+  desc: null
+  value: 1.0
+aggregation_default:
+  desc: null
+  value: builtins.sum
+aggregation_mutate_rate:
+  desc: null
+  value: 0.0
+aggregation_options:
+  desc: null
+  value: builtins.sum
+bias_init_mean:
+  desc: null
+  value: 3.0
+bias_init_stdev:
+  desc: null
+  value: 1.0
+bias_max_value:
+  desc: null
+  value: 30.0
+bias_min_value:
+  desc: null
+  value: -30.0
+bias_mutate_power:
+  desc: null
+  value: 0.5
+bias_mutate_rate:
+  desc: null
+  value: 0.7
+bias_replace_rate:
+  desc: null
+  value: 0.1
+compatibility_disjoint_coefficient:
+  desc: null
+  value: 1.0
+compatibility_weight_coefficient:
+  desc: null
+  value: 0.5
+conn_add_prob:
+  desc: null
+  value: 0.5
+conn_delete_prob:
+  desc: null
+  value: 0.5
+enabled_default:
+  desc: null
+  value: true
+enabled_mutate_rate:
+  desc: null
+  value: 0.01
+feed_forward:
+  desc: null
+  value: true
+node_add_prob:
+  desc: null
+  value: 0.2
+node_delete_prob:
+  desc: null
+  value: 0.2
+num_hidden:
+  desc: null
+  value: 4
+num_inputs:
+  desc: null
+  value: 37
+num_outputs:
+  desc: null
+  value: 5
+response_init_mean:
+  desc: null
+  value: 1.0
+response_init_stdev:
+  desc: null
+  value: 0.0
+response_max_value:
+  desc: null
+  value: 30.0
+response_min_value:
+  desc: null
+  value: -30.0
+response_mutate_power:
+  desc: null
+  value: 0.0
+response_mutate_rate:
+  desc: null
+  value: 0.0
+response_replace_rate:
+  desc: null
+  value: 0.0
+weight_init_mean:
+  desc: null
+  value: 0.0
+weight_init_stdev:
+  desc: null
+  value: 1.0
+weight_max_value:
+  desc: null
+  value: 30
+weight_min_value:
+  desc: null
+  value: -30
+weight_mutate_power:
+  desc: null
+  value: 0.5
+weight_mutate_rate:
+  desc: null
+  value: 0.8
+weight_replace_rate:
+  desc: null
+  value: 0.1
+compatibility_threshold:
+  desc: null
+  value: 3.0
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.13
+    cli_version: 0.16.2
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1707070055.126881
+    t:
+      1:
+      - 55
+      2:
+      - 55
+      3:
+      - 16
+      - 23
+      4: 3.10.13
+      5: 0.16.2
+      8:
+      - 5
+      13: darwin-x86_64

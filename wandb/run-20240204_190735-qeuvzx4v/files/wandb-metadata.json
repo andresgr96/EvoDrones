@@ -1,0 +1,45 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.10.13",
+    "heartbeatAt": "2024-02-04T18:07:35.788692",
+    "startedAt": "2024-02-04T18:07:35.119405",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/filip/study/gym-pybullet-drones/gym_pybullet_drones/EvoDrones/run_exp.py",
+    "codePathLocal": "run_exp.py",
+    "codePath": "run_exp.py",
+    "git": {
+        "remote": "git@github.com:andresgr96/EvoDrones.git",
+        "commit": "04db7773863fd842c55ba268e6b8a13259814531"
+    },
+    "email": "f.muntean@student.vu.nl",
+    "root": "/Users/filip/study/gym-pybullet-drones/gym_pybullet_drones/EvoDrones",
+    "host": "MacBook-Pro-de-Filip.local",
+    "username": "filip",
+    "executable": "/Users/filip/anaconda3/envs/drones/bin/python3",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 1400,
+        "min": 1400,
+        "max": 1400
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1400,
+            "min": 1400,
+            "max": 1400
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 233.46913528442383,
+            "used": 9.427120208740234
+        }
+    },
+    "memory": {
+        "total": 8.0
+    }
+}

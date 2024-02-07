@@ -25,7 +25,7 @@ import wandb
 wandb.init(
     # set the wandb project where this run will be logged
     project="EvoDrones",
-    
+    group="NEAT",
     # track hyperparameters and run metadata
     config={
     "fitness_criterion"     : max,

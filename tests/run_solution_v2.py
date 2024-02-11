@@ -269,7 +269,7 @@ if __name__ == "__main__":
                              neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     # Load the saved genome
-    file_path = os.path.join(os.getcwd(), "../results/V3/best.pickle")
+    file_path = os.path.join(os.getcwd(), "../results/V5/best.pickle")
     with open(file_path, "rb") as f:
         winner = pickle.load(f)
 

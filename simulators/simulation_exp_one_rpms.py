@@ -144,8 +144,9 @@ def run_sim(
             if np.any(np.array(action) > 21000):  # Penalize unfeasible actions
                 # print(f"Penalize action: {action}")
                 genome.fitness -= unfeasible_action_penalty
-            # print(action)
+            # print(f"Before: {action}")
             action = build_action(action)
+            # print(f"After: {action}")
             _ = env.step(action)
             steps += 1
 

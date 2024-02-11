@@ -64,7 +64,7 @@ def run(
     H_STEP = .05
     R = .3
     INIT_XYZS = np.array(
-        [[R * np.cos((i / 6) * 2 * np.pi + np.pi / 2), R * np.sin((i / 6) * 2 * np.pi + np.pi / 2) - R, 1 +H + i * H_STEP]
+        [[R * np.cos((i / 6) * 2 * np.pi + np.pi / 2), R * np.sin((i / 6) * 2 * np.pi + np.pi / 2) - R, 0.5]
          for i in range(num_drones)])
     INIT_RPYS = np.array([[0, 0, i * (np.pi / 2) / num_drones] for i in range(num_drones)])
 
@@ -121,14 +121,14 @@ def run(
         # Build the action for each drone and take a step, action is random for now
         action = build_action_forward(num_drones)
         down = np.array([[0, 0, 0, 0]])
-        up = np.array([[19000, 19000, 19000, 19000]])
+        up = np.array([[14700, 14700, 14700, 14700]])
         slow_down = np.array([[14100, 14100, 14100, 14100]])
         pitch_back = np.array([[14100, 13900, 13900, 14100]])
         pitch_forward = np.array([[14650, 14700, 14700, 14650]])
         roll_right = np.array([[13900, 13900, 14100, 14100]])
         roll_left = np.array([[14100, 14100, 13900, 13900]])
         if not crashed:
-            obs, reward, terminated, truncated, info = env.step(pitch_forward)
+            obs, reward, terminated, truncated, info = env.step(slow_down)
 
         # Display the camera feed of drone 1
         rgb_image, _, _ = env._getDroneImages(0)

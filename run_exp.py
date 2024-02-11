@@ -76,7 +76,7 @@ if __name__ == '__main__':
     config_dir = os.path.join(local_dir, "assets")
 
     # Setup NEAT configs
-    config_path = os.path.join(config_dir, 'config_rpms.txt')
+    config_path = os.path.join(config_dir, 'config.txt')
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)

@@ -22,16 +22,10 @@ def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
         return
 
     generation = range(len(statistics.most_fit_genomes))
-    best_fitness = [c.fitness for c in statistics.most_fit_genomes]
     avg_fitness = np.array(statistics.get_fitness_mean())
-    stdev_fitness = np.array(statistics.get_fitness_stdev())
 
     plt.plot(generation, avg_fitness, 'b-', label="average")
-    # plt.plot(generation, avg_fitness - stdev_fitness, 'g-.', label="-1 sd")
-    # plt.plot(generation, avg_fitness + stdev_fitness, 'g-.', label="+1 sd")
-    # plt.plot(generation, best_fitness, 'r-', label="best")
-
-    plt.title("Population's average and best fitness")
+    plt.title("Population's average fitness")
     plt.xlabel("Generations")
     plt.ylabel("Fitness")
     plt.grid()
@@ -46,7 +40,7 @@ def plot_stats(statistics, ylog=False, view=False, filename='avg_fitness.svg'):
     plt.close()
 
 
-def run_neat(config, results_dir):
+def run_neat(config, results_dir, checkpoint=None):
 
     # Create a folder with the current date to have better organized results
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -54,7 +48,11 @@ def run_neat(config, results_dir):
     os.makedirs(experiment_dir)
 
     # Start the population and reporters
-    p = neat.Population(config)
+    if checkpoint:
+        p = neat.Checkpointer().restore_checkpoint(checkpoint)
+    else:
+        p = neat.Population(config)
+
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
@@ -62,6 +60,7 @@ def run_neat(config, results_dir):
 
     # Run NEAT and save the best solution to the results dir
     winner = p.run(eval_genomes, 500)
+
     with open(os.path.join(experiment_dir, "best.pickle"), "wb") as f:
         pickle.dump(winner, f)
 
@@ -81,4 +80,8 @@ if __name__ == '__main__':
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
 
-    run_neat(config, results_dir)
+    # Specify the checkpoint file if resuming from a checkpoint
+    checkpoint_file = os.path.join(results_dir, '2024-02-18_17-52-25', 'neat-checkpoint110')
+
+    # Change checkpoint to None if you dont want to resume training.
+    run_neat(config, results_dir, checkpoint=checkpoint_file)

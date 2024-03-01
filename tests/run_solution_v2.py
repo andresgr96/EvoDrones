@@ -31,7 +31,7 @@ DEFAULT_USER_DEBUG_GUI = False
 DEFAULT_OBSTACLES = True
 DEFAULT_SIMULATION_FREQ_HZ = 240
 DEFAULT_CONTROL_FREQ_HZ = 48
-DEFAULT_DURATION_SEC = 3.14
+DEFAULT_DURATION_SEC = 4.5
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
 
@@ -245,6 +245,7 @@ def run_sim(
 
         # Stop the sim if the drone landed
         if landed:
+            print("landed")
             # env.close()
             break
 
@@ -264,12 +265,12 @@ def run_sim(
 
 if __name__ == "__main__":
     # Load NEAT configuration
-    config_path = "../assets/config_rpms.txt"
+    config_path = "../assets/config.txt"
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                              neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     # Load the saved genome
-    file_path = os.path.join(os.getcwd(), "../results/V5/best.pickle")
+    file_path = os.path.join(os.getcwd(), "../results/MVP/best.pickle")
     with open(file_path, "rb") as f:
         winner = pickle.load(f)
 

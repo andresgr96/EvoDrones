@@ -59,7 +59,7 @@ def run_neat(config, results_dir, checkpoint=None):
     p.add_reporter(neat.Checkpointer(1, filename_prefix=os.path.join(experiment_dir, 'neat-checkpoint')))
 
     # Run NEAT and save the best solution to the results dir
-    winner = p.run(eval_genomes, 500)
+    winner = p.run(eval_genomes, 750)
 
     with open(os.path.join(experiment_dir, "best.pickle"), "wb") as f:
         pickle.dump(winner, f)
@@ -81,7 +81,7 @@ if __name__ == '__main__':
                          config_path)
 
     # Specify the checkpoint file if resuming from a checkpoint
-    checkpoint_file = os.path.join(results_dir, '2024-02-18_17-52-25', 'neat-checkpoint110')
+    checkpoint_file = os.path.join(results_dir, '2024-03-01_00-36-38', 'neat-checkpoint170')
 
     # Change checkpoint to None if you dont want to resume training.
     run_neat(config, results_dir, checkpoint=checkpoint_file)

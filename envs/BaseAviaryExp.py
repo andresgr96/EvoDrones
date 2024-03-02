@@ -71,8 +71,8 @@ class BaseAviary(gym.Env):
 
         """
         #### Constants #############################################
-        self.crash_thresh = 3
-        self.speed_thresh = 2
+        self.crash_thresh = 2.8
+        self.speed_thresh = 1.8
         self.segment_ids = {}  # Dictionary to store object IDs
         self.circle_info = {}
         self.num_segments = 3  # Store number of segments, would be good to auto this when we have the track builder

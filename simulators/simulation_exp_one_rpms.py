@@ -209,7 +209,7 @@ def run_sim(
                     following_reward -= out_of_track_penalty
 
                 # Penalize flying too high
-                if z >= 1:
+                if z >= 0.5:
                     following_reward -= high_z_penalty
 
                 # Check if the circle has been detected (needs fine-tuning for > 1 segments)

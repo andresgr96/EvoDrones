@@ -59,7 +59,7 @@ def run_neat(config):
 
     # Use p.population to get the winners and save them as needed
     winner = p.run(eval_genomes_parallel, 5)
-    with open("best.pickle", "wb") as f:
+    with open("822-45-strict.pickle", "wb") as f:
         pickle.dump(winner, f)
 
 

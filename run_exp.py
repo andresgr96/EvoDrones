@@ -81,7 +81,7 @@ if __name__ == '__main__':
                          config_path)
 
     # Specify the checkpoint file if resuming from a checkpoint
-    checkpoint_file = os.path.join(results_dir, '2024-03-01_10-47-32', 'neat-checkpoint543')
+    checkpoint_file = os.path.join(results_dir, '2024-03-02_23-27-52', 'neat-checkpoint406')
 
     # Change checkpoint to None if you dont want to resume training.
-    run_neat(config, results_dir, checkpoint=None)
+    run_neat(config, results_dir, checkpoint=checkpoint_file)

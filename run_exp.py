@@ -6,10 +6,19 @@ import pickle
 import matplotlib.pyplot as plt
 import warnings
 import numpy as np
-from gym_pybullet_drones.EvoDrones.simulators.simulation_exp_one_rpms import run_sim
 
 
 def eval_genomes(genomes, config):
+    # global controller
+
+    print(controller)
+    if controller == "takeoff":
+        from gym_pybullet_drones.evo_drones.simulators.simulation_exp_one_rpms_takeoff import run_sim
+    elif controller == "follow":
+        from gym_pybullet_drones.evo_drones.simulators.simulation_exp_one_rpms_follow import run_sim
+    else:
+        from gym_pybullet_drones.evo_drones.simulators.simulation_exp_one_rpms_land import run_sim
+
     for i, (genome_id, genome) in enumerate(genomes):
         genome.fitness = 0
         run_sim(genome, config)
@@ -72,7 +81,7 @@ if __name__ == '__main__':
 
     # Specify the results and config directories
     results_dir = os.path.join(local_dir, "results")
-    config_dir = os.path.join(local_dir, "assets")
+    config_dir = os.path.join(local_dir, "envs/assets")
 
     # Setup NEAT configs
     config_path = os.path.join(config_dir, 'config.txt')
@@ -81,7 +90,12 @@ if __name__ == '__main__':
                          config_path)
 
     # Specify the checkpoint file if resuming from a checkpoint
-    checkpoint_file = os.path.join(results_dir, '2024-03-02_23-27-52', 'neat-checkpoint406')
+    # checkpoint_file = os.path.join(results_dir, '2024-03-02_23-27-52', 'neat-checkpoint406')
+    checkpoint_file = None
+
+    # Declare which controller to train
+    global controller
+    controller = "takeoff"
 
     # Change checkpoint to None if you dont want to resume training.
     run_neat(config, results_dir, checkpoint=checkpoint_file)

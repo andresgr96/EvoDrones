@@ -1,7 +1,7 @@
 import numpy as np
 from gymnasium import spaces
 
-from gym_pybullet_drones.EvoDrones.envs.BaseAviaryExp import BaseAviary
+from gym_pybullet_drones.evo_drones.envs.BaseAviaryExp import BaseAviary
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
 
 class CtrlAviary(BaseAviary):

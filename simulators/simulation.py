@@ -12,11 +12,11 @@ import cv2
 import neat
 
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
-from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
-from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
-from gym_pybullet_drones.EvoDrones.controllers.rand_action import build_action, build_action_forward, to_hover, \
+from gym_pybullet_drones.evo_drones.envs.CtrlAviary import CtrlAviary
+from gym_pybullet_drones.evo_drones.controllers.DSLPIDControl import DSLPIDControl
+from gym_pybullet_drones.evo_drones.controllers.rand_action import build_action, build_action_forward, to_hover, \
     action_decision
-from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
+from gym_pybullet_drones.evo_drones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
     detect_objects
 from gym_pybullet_drones.utils.Logger import Logger
 from gym_pybullet_drones.utils.utils import sync, str2bool

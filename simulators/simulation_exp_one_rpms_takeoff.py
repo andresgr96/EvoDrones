@@ -88,9 +88,8 @@ def run_sim(
 
     # Drone state tracking
     taking_off = True
-    following = False
-    landing = False
-    landed = False
+    done = False
+
 
     # Takeoff state rewards tracking
     takeoff_reward = 0
@@ -126,6 +125,8 @@ def run_sim(
 
     # Run the simulation
     for i in range(0, int(duration_sec * env.CTRL_FREQ)):
+        if done:
+            break
 
         drone_positions = env._getDronePositions()
         for drone_id, _ in enumerate(drone_positions):
@@ -182,60 +183,23 @@ def run_sim(
 
             # -------------------------------------- Drone's state machine --------------------------------------#
             if taking_off:
-                # print("Taking Off")
                 # Encourage going up by penalizing staying down
                 if z < 0.2:
                     takeoff_reward -= takeoff_penalty
+                    # Encourage stable flight
+                    if not is_stable:
+                        following_reward -= stability_penalty
+                    if not within_track:
+                        following_reward = 0
+                        genome.fitness = -1000
+                        print("Out of Bounds")
+                        done = True
+                        break
                 elif z >= 0.2:
                     takeoff_reward += takeoff_reward_value
-                    taking_off = False
-                    following = True
-            elif following:
-                # print("Following")
-                at_segments_end = np.sum(current_segment_completion) >= 8
-
-                # Encourage moving towards the circle in a stable matter
-                if moving_forward and is_stable:
-                    following_reward += moving_forwards_value
-                else:
-                    following_reward -= moving_backwards_pen
-
-                # Encourage stable flight
-                if not is_stable:
-                    following_reward -= stability_penalty
-
-                # Encourage staying within the current segments coordinates
-                if not within_track:
-                    following_reward -= out_of_track_penalty
-
-                # Penalize flying too high
-                if z >= 0.5:
-                    following_reward -= high_z_penalty
-
-                # Check if the circle has been detected (needs fine-tuning for > 1 segments)
-                if (circle == 1 and at_segments_end) or at_segments_end:
-                    following = False
-                    landing = True
-            elif landing:
-                # print("Landing")
-                if not drone_landed:
-                    # Encourage flying down
-                    landing_reward -= high_z_penalty
-
-                    # Encourage moving towards the circle
-                    if moving_forward:
-                        landing_reward += moving_forwards_value
-                    else:
-                        landing_reward -= moving_backwards_pen
-
-                    # Encourage staying within the circles x and y coordinates
-                    if in_target_circle:
-                        landing_reward += within_circle_reward
-                elif drone_landed:
-                    # print("Landed")
-                    landing_reward += landing_reward_value
-                    landing = False
-                    landed = True
+                    print("Mission is Good")
+                    done = True
+                    break
             # -------------------------------------- Drone's state machine END --------------------------------------#
 
         # Render and sync the sim if needed
@@ -243,16 +207,9 @@ def run_sim(
         if gui:
             sync(i, START, env.CTRL_TIMESTEP)
 
-        # Stop the sim if the drone landed
-        if landed:
-            # env.close()
-            break
 
     # Final fitness calculations
-    segment_reward = np.sum(drones_segments_completed[0, :]) * segment_completed_value
-    sections_reward = np.sum(current_segment_completion) * section_reward_value
-    genome.fitness += takeoff_reward + following_reward + landing_reward\
-                      + segment_reward + sections_reward - (steps * runtime_penalty)
+    genome.fitness += takeoff_reward - (steps * runtime_penalty/100)
     print('Fitness', genome.fitness)
     print('Steps', steps)
 

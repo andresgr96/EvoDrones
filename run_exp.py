@@ -70,7 +70,7 @@ def run_neat(config, results_dir, checkpoint=None):
     # Run NEAT and save the best solution to the results dir
     winner = p.run(eval_genomes, 1)
 
-    with open(os.path.join(experiment_dir, "best.pickle"), "wb") as f:
+    with open(os.path.join(experiment_dir, f"{controller}_best.pickle"), "wb") as f:
         pickle.dump(winner, f)
 
     plot_stats(stats, ylog=False, view=True)

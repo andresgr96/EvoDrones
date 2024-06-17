@@ -184,7 +184,7 @@ def run_sim(
             # -------------------------------------- Drone's state machine --------------------------------------#
             if taking_off:
                 # Encourage going up by penalizing staying down
-                if z < 0.2:
+                if z < 0.5:
                     takeoff_reward -= takeoff_penalty
                     # Encourage stable flight
                     if not is_stable:
@@ -195,7 +195,7 @@ def run_sim(
                         print("Out of Bounds")
                         done = True
                         break
-                elif z >= 0.2:
+                elif z >= 0.5:
                     takeoff_reward += takeoff_reward_value
                     print("Mission is Good")
                     done = True

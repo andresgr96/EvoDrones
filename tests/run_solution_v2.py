@@ -11,9 +11,9 @@ import pybullet as p
 import cv2
 import neat
 from gym_pybullet_drones.utils.enums import DroneModel, Physics
-from gym_pybullet_drones.EvoDrones.envs.CtrlAviary import CtrlAviary
-from gym_pybullet_drones.EvoDrones.controllers.nn import build_action
-from gym_pybullet_drones.EvoDrones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
+from gym_pybullet_drones.evo_drones.envs.CtrlAviary import CtrlAviary
+from gym_pybullet_drones.evo_drones.controllers.nn import build_action
+from gym_pybullet_drones.evo_drones.utils.computer_vision import display_drone_image, red_mask, segment_image, \
     detect_objects, detect_circles
 from gym_pybullet_drones.utils.utils import sync, str2bool
 # from gym_pybullet_drones.EvoDrones.controllers.DSLPIDControl import DSLPIDControl
@@ -264,13 +264,15 @@ def run_sim(
 
 
 if __name__ == "__main__":
+
     # Load NEAT configuration
-    config_path = "../assets/config.txt"
+    config_path = "gym_pybullet_drones/evo_drones/envs/assets/config.txt"
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                              neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     # Load the saved genome
-    file_path = os.path.join(os.getcwd(), "../solutions/exp1_flew.pickle")
+    file_path = "gym_pybullet_drones/evo_drones//solutions/takeoff_best.pickle"
+    # gym_pybullet_drones\evo_drones\envs\assets\config.txt
     with open(file_path, "rb") as f:
         winner = pickle.load(f)
 

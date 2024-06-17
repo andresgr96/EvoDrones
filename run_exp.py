@@ -65,10 +65,10 @@ def run_neat(config, results_dir, checkpoint=None):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(1, filename_prefix=os.path.join(experiment_dir, 'neat-checkpoint')))
+    p.add_reporter(neat.Checkpointer(10, filename_prefix=os.path.join(experiment_dir, 'neat-checkpoint')))
 
     # Run NEAT and save the best solution to the results dir
-    winner = p.run(eval_genomes, 1)
+    winner = p.run(eval_genomes, 500)
 
     with open(os.path.join(experiment_dir, f"{controller}_best.pickle"), "wb") as f:
         pickle.dump(winner, f)

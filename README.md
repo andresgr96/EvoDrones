@@ -19,8 +19,8 @@ pip install -e . # if needed, `sudo apt install build-essential` to install `gcc
 
 ```sh
 cd gym-pybullet-drones/gym_pybullet_drones
-git clone https://github.com/andresgr96/EvoDrones.git
-cd EvoDrones
+git clone https://github.com/andresgr96/evo_drones.git
+cd evo_drones
 
 pip install -r requirements.txt
 pip install -e .
